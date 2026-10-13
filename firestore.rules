@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function score(value) {
+      return value == null || (value is number && value >= 0 && value <= 1);
+    }
+    function answers(data) {
+      return data.keys().hasOnly(['productivity', 'energy', 'thoughts', 'personal', 'university', 'health', 'pain'])
+        && data.keys().hasAll(['productivity', 'energy', 'thoughts', 'personal', 'university', 'health', 'pain'])
+        && score(data.productivity) && score(data.energy) && score(data.thoughts)
+        && score(data.personal) && score(data.university) && score(data.health) && score(data.pain);
+    }
+    function activities(data) {
+      return data.keys().hasOnly(['meditate', 'read', 'tidy', 'university', 'personal', 'learn', 'help', 'schedule', 'gym'])
+        && data.keys().hasAll(['meditate', 'read', 'tidy', 'university', 'personal', 'learn', 'help', 'schedule', 'gym'])
+        && score(data.meditate) && score(data.read) && score(data.tidy)
+        && score(data.university) && score(data.personal) && score(data.learn)
+        && score(data.help) && score(data.schedule) && score(data.gym);
+    }
+    match /users/{uid}/days/{day} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && request.resource.data.keys().hasOnly(['date', 'answers', 'activities', 'productivityMode', 'weight', 'notes', 'updatedAt'])
+        && request.resource.data.date == day
+        && request.resource.data.answers is map
+        && answers(request.resource.data.answers)
+        && request.resource.data.activities is map
+        && activities(request.resource.data.activities)
+        && request.resource.data.productivityMode in ['activities', 'manual']
+        && (request.resource.data.weight == null || (request.resource.data.weight is number && request.resource.data.weight > 0 && request.resource.data.weight <= 500))
+        && request.resource.data.notes is string && request.resource.data.notes.size() <= 2000
+        && request.resource.data.updatedAt is string;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

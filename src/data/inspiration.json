@@ -1,0 +1,400 @@
+{
+  "phrases": [
+    {
+      "number": 1,
+      "text": "Nuestra mayor gloria no está en no caer nunca, sino en levantarnos cada vez que caemos. — Oliver Goldsmith"
+    },
+    {
+      "number": 2,
+      "text": "Cae siete veces, levántate ocho. — Proverbio japonés"
+    },
+    {
+      "number": 3,
+      "text": "Lo que importa no es cuán fuerte golpeas, sino cuán fuerte te golpean y sigues avanzando. — Rocky Balboa"
+    },
+    {
+      "number": 4,
+      "text": "He fallado una y otra vez en mi vida. Por eso tengo éxito. — Michael Jordan"
+    },
+    {
+      "number": 5,
+      "text": "Yo nunca pierdo: o gano o aprendo. — Nelson Mandela"
+    },
+    {
+      "number": 6,
+      "text": "Lo que no me mata me hace más fuerte. — Friedrich Nietzsche"
+    },
+    {
+      "number": 7,
+      "text": "El mundo rompe a todos, y muchos se hacen fuertes en los lugares rotos. — Ernest Hemingway, Adiós a las armas"
+    },
+    {
+      "number": 8,
+      "text": "Un hombre puede ser destruido, pero no derrotado. — Ernest Hemingway, El viejo y el mar"
+    },
+    {
+      "number": 9,
+      "text": "El pasado puede doler, pero puedes huir de él o aprender de él. — Rafiki, El Rey León"
+    },
+    {
+      "number": 10,
+      "text": "Sigue nadando. — Dory, Buscando a Nemo"
+    },
+    {
+      "number": 11,
+      "text": "¿Por qué nos caemos? Para aprender a levantarnos. — Alfred, Batman Begins"
+    },
+    {
+      "number": 12,
+      "text": "Ayer es historia, mañana es un misterio, pero hoy es un regalo; por eso se llama presente. — Maestro Oogway, Kung Fu Panda"
+    },
+    {
+      "number": 13,
+      "text": "Todo lo que debemos decidir es qué hacer con el tiempo que se nos ha dado. — Gandalf, El Señor de los Anillos"
+    },
+    {
+      "number": 14,
+      "text": "Hay algo bueno en este mundo, señor Frodo, y vale la pena luchar por ello. — Sam, El Señor de los Anillos: Las dos torres"
+    },
+    {
+      "number": 15,
+      "text": "El obstáculo del camino se convierte en el camino. — Marco Aurelio, Meditaciones"
+    },
+    {
+      "number": 16,
+      "text": "Cuando ya no podemos cambiar una situación, nos toca cambiarnos a nosotros mismos. — Viktor Frankl"
+    },
+    {
+      "number": 17,
+      "text": "Una sola cosa hace imposible un sueño: el miedo a fracasar. — Paulo Coelho, El alquimista"
+    },
+    {
+      "number": 18,
+      "text": "Es duro fracasar, pero es peor no haber intentado nunca triunfar. — Theodore Roosevelt"
+    },
+    {
+      "number": 19,
+      "text": "Si no puedes volar, corre; si no puedes correr, camina; si no puedes caminar, arrástrate; pero sigue adelante. — Martin Luther King Jr."
+    },
+    {
+      "number": 20,
+      "text": "Debemos aceptar la decepción finita, pero nunca perder la esperanza infinita. — Martin Luther King Jr."
+    },
+    {
+      "number": 21,
+      "text": "Incluso la noche más oscura terminará y el sol volverá a salir. — Victor Hugo, Los miserables"
+    },
+    {
+      "number": 22,
+      "text": "La vida no es fácil para ninguno de nosotros, pero hay que tener perseverancia y confianza en uno mismo. — Marie Curie"
+    },
+    {
+      "number": 23,
+      "text": "Nada en la vida debe ser temido, solo comprendido. — Marie Curie"
+    },
+    {
+      "number": 24,
+      "text": "Por muy difícil que parezca la vida, siempre hay algo que puedes hacer y en lo que puedes tener éxito. — Stephen Hawking"
+    },
+    {
+      "number": 25,
+      "text": "No he fracasado; solo he encontrado diez mil maneras que no funcionan. — Thomas Edison"
+    },
+    {
+      "number": 26,
+      "text": "Confía en el tiempo, que suele dar dulces salidas a muchas amargas dificultades. — Miguel de Cervantes, Don Quijote"
+    },
+    {
+      "number": 27,
+      "text": "El valor no siempre ruge; a veces es la voz tranquila que dice: mañana lo intentaré de nuevo. — Mary Anne Radmacher"
+    },
+    {
+      "number": 28,
+      "text": "La vida no es esperar a que pase la tormenta, sino aprender a bailar bajo la lluvia. — Vivian Greene"
+    },
+    {
+      "number": 29,
+      "text": "No son las cosas las que nos perturban, sino la opinión que tenemos de ellas. — Epicteto"
+    },
+    {
+      "number": 30,
+      "text": "Sufrimos más en la imaginación que en la realidad. — Séneca"
+    },
+    {
+      "number": 31,
+      "text": "Somos lo que hacemos repetidamente. La excelencia, entonces, no es un acto, sino un hábito. — Will Durant (resumiendo a Aristóteles)"
+    },
+    {
+      "number": 32,
+      "text": "Si he visto más lejos, es porque estoy sobre los hombros de gigantes. — Isaac Newton"
+    },
+    {
+      "number": 33,
+      "text": "Quien conquista a otros es fuerte; quien se conquista a sí mismo es poderoso. — Lao Tse"
+    },
+    {
+      "number": 34,
+      "text": "El éxito es la suma de pequeños esfuerzos repetidos día tras día. — Robert Collier"
+    },
+    {
+      "number": 35,
+      "text": "Cuanto más practico, más suerte tengo. — Gary Player"
+    },
+    {
+      "number": 36,
+      "text": "Lo que te trajo hasta aquí no te llevará hasta allá. — Marshall Goldsmith"
+    },
+    {
+      "number": 37,
+      "text": "Solo los paranoicos sobreviven. — Andy Grove, Intel"
+    },
+    {
+      "number": 38,
+      "text": "El éxito es un mal maestro: seduce a la gente inteligente y la hace creer que no puede perder. — Bill Gates"
+    },
+    {
+      "number": 39,
+      "text": "Lo que hacemos en la vida tiene su eco en la eternidad. — Máximo, Gladiador"
+    },
+    {
+      "number": 40,
+      "text": "Un gran poder conlleva una gran responsabilidad. — Tío Ben, Spider-Man"
+    },
+    {
+      "number": 41,
+      "text": "La disciplina es el puente entre las metas y los logros. — Jim Rohn"
+    },
+    {
+      "number": 42,
+      "text": "La motivación te pone en marcha; el hábito hace que sigas. — Jim Ryun"
+    },
+    {
+      "number": 43,
+      "text": "Hay una diferencia entre conocer el camino y recorrer el camino. — Morfeo, Matrix"
+    },
+    {
+      "number": 44,
+      "text": "No cuentes los días, haz que los días cuenten. — Muhammad Ali"
+    },
+    {
+      "number": 45,
+      "text": "El talento gana partidos, pero el trabajo en equipo y la inteligencia ganan campeonatos. — Michael Jordan"
+    },
+    {
+      "number": 46,
+      "text": "No es la montaña lo que conquistamos, sino a nosotros mismos. — Edmund Hillary"
+    },
+    {
+      "number": 47,
+      "text": "El genio es 1% inspiración y 99% transpiración. — Thomas Edison"
+    },
+    {
+      "number": 48,
+      "text": "Antes del quebrantamiento es la soberbia, y antes de la caída, la altivez de espíritu. — Libro de Proverbios 16:18"
+    },
+    {
+      "number": 49,
+      "text": "El que piense estar firme, mire que no caiga. — 1 Corintios 10:12"
+    },
+    {
+      "number": 50,
+      "text": "Es mucho más difícil juzgarse a uno mismo que juzgar a los demás. — El Principito, Antoine de Saint-Exupéry"
+    },
+    {
+      "number": 51,
+      "text": "La suerte favorece solo a la mente preparada. — Louis Pasteur"
+    },
+    {
+      "number": 52,
+      "text": "Mantente hambriento, mantente alocado. — Steve Jobs"
+    },
+    {
+      "number": 53,
+      "text": "El éxito no es la clave de la felicidad; la felicidad es la clave del éxito. — Albert Schweitzer"
+    },
+    {
+      "number": 54,
+      "text": "Solo sé que no sé nada. — Sócrates"
+    },
+    {
+      "number": 55,
+      "text": "Lo que hay que aprender a hacer, lo aprendemos haciendo. — Aristóteles, Ética a Nicómaco"
+    },
+    {
+      "number": 56,
+      "text": "Quienes no recuerdan el pasado están condenados a repetirlo. — George Santayana"
+    },
+    {
+      "number": 57,
+      "text": "Son nuestras elecciones, más que nuestras habilidades, las que muestran lo que somos. — Dumbledore, Harry Potter"
+    },
+    {
+      "number": 58,
+      "text": "Nadie descubre nuevos océanos sin tener el valor de perder de vista la costa. — André Gide"
+    },
+    {
+      "number": 59,
+      "text": "La vida es como andar en bicicleta: para mantener el equilibrio hay que seguir moviéndose. — Albert Einstein"
+    },
+    {
+      "number": 60,
+      "text": "El único modo de hacer un gran trabajo es amar lo que haces. — Steve Jobs"
+    }
+  ],
+  "advice": {
+    "productivity": [
+      "La productividad nunca es un accidente. Siempre es el resultado de un compromiso con la excelencia, una planificación inteligente y un esfuerzo enfocado. — Paul J. Meyer",
+      "No hay nada tan inútil como hacer con gran eficiencia algo que no debería hacerse en absoluto. — Peter Drucker",
+      "¿Amas la vida? Entonces no malgastes el tiempo, porque de eso está hecha la vida. — Benjamin Franklin",
+      "Lo principal es mantener lo principal como lo principal. — Stephen Covey",
+      "El trabajo se expande hasta llenar el tiempo disponible para su finalización. — C. Northcote Parkinson",
+      "No es que tengamos poco tiempo, sino que perdemos mucho. — Séneca",
+      "Lo importante rara vez es urgente y lo urgente rara vez es importante. — Dwight Eisenhower (atribuida)",
+      "La diferencia entre las personas exitosas y las realmente exitosas es que estas últimas dicen no a casi todo. — Warren Buffett (atribuida)",
+      "Si hiciéramos todas las cosas que somos capaces de hacer, literalmente nos asombraríamos a nosotros mismos. — Thomas Edison",
+      "La inspiración existe, pero tiene que encontrarte trabajando. — Pablo Picasso (atribuida)",
+      "O diriges tu día, o el día te dirige a ti. — Jim Rohn",
+      "Si tienes que comerte una rana, mejor hazlo a primera hora de la mañana. — Brian Tracy (atribuida a Mark Twain)",
+      "No esperes. El momento nunca será el ideal. — Napoleon Hill",
+      "Dame seis horas para cortar un árbol y pasaré las primeras cuatro afilando el hacha. — Abraham Lincoln (atribuida)",
+      "La innovación consiste en decir no a mil cosas. — Steve Jobs",
+      "Eficiencia es hacer las cosas bien; eficacia es hacer las cosas correctas. — Peter Drucker",
+      "No tienes que ser grande para empezar, pero tienes que empezar para ser grande. — Zig Ziglar",
+      "No temo al hombre que ha practicado diez mil patadas una vez, temo al que ha practicado una patada diez mil veces. — Bruce Lee (atribuida)",
+      "Elegiría a una persona perezosa para hacer un trabajo difícil, porque encontrará una manera fácil de hacerlo. — Bill Gates (atribuida)",
+      "La naturaleza no se apresura y, sin embargo, todo se logra. — Lao Tse"
+    ],
+    "energy": [
+      "Si quieres encontrar los secretos del universo, piensa en términos de energía, frecuencia y vibración. — Nikola Tesla (atribuida)",
+      "Si te afliges por algo externo, no es la cosa la que te perturba, sino tu juicio sobre ella; y está en tu poder borrarlo ahora. — Marco Aurelio, Meditaciones",
+      "Hay cosas que dependen de nosotros y otras que no dependen de nosotros. — Epicteto, Enquiridión",
+      "Tu tiempo es limitado, no lo malgastes viviendo la vida de otro. — Steve Jobs",
+      "Absorbe lo que es útil, descarta lo que no lo es y añade lo que es específicamente tuyo. — Bruce Lee",
+      "El precio de cualquier cosa es la cantidad de vida que se intercambia por ella. — Henry David Thoreau, Walden",
+      "Los dos guerreros más poderosos son la paciencia y el tiempo. — León Tolstói, Guerra y paz",
+      "Nadie puede hacerte sentir inferior sin tu consentimiento. — Eleanor Roosevelt",
+      "No son las montañas ante vosotros las que os agotan, sino la piedrecita en vuestro zapato. — Muhammad Ali (atribuida)",
+      "Cualquiera puede enfadarse, eso es fácil; pero enfadarse con la persona adecuada, en el grado exacto y en el momento oportuno, eso no es fácil. — Aristóteles, Ética a Nicómaco",
+      "El que tarda en airarse es grande de entendimiento. — Libro de Proverbios 14:29",
+      "La vida es un 10% lo que me ocurre y un 90% cómo reacciono a ello. — Charles Swindoll",
+      "No es lo que te sucede, sino cómo reaccionas lo que importa. — Epicteto",
+      "El resentimiento es como beber veneno y esperar que mate a tus enemigos. — Nelson Mandela (atribuida)",
+      "No puedes impedir que los pájaros de la tristeza vuelen sobre tu cabeza, pero sí que aniden en tu cabello. — Proverbio chino",
+      "No dejes que el comportamiento de los demás destruya tu paz interior. — Dalai Lama",
+      "La victoria suprema es vencer sin combatir. — Sun Tzu, El arte de la guerra",
+      "Cualquier tonto puede criticar, condenar y quejarse, y la mayoría lo hace. — Dale Carnegie",
+      "La mejor venganza es no ser como quien causó el daño. — Marco Aurelio, Meditaciones",
+      "La energía y la persistencia conquistan todas las cosas. — Benjamin Franklin"
+    ],
+    "thoughts": [
+      "He vivido muchos problemas terribles, la mayoría de los cuales nunca ocurrieron. — Mark Twain (atribuida)",
+      "Tienes poder sobre tu mente, no sobre los acontecimientos. Date cuenta de esto y encontrarás la fuerza. — Marco Aurelio (atribuida)",
+      "Nuestra vida es lo que nuestros pensamientos hacen de ella. — Marco Aurelio, Meditaciones",
+      "Ayer es historia, mañana es un misterio, pero hoy es un regalo; por eso se llama presente. — Maestro Oogway, Kung Fu Panda",
+      "El pasado puede doler, pero puedes huir de él o aprender de él. — Rafiki, El Rey León",
+      "No os afanéis por el día de mañana, porque el día de mañana traerá su propio afán. — Mateo 6:34",
+      "No hay nada bueno ni malo, si no es el pensamiento el que lo hace así. — William Shakespeare, Hamlet",
+      "Tanto si piensas que puedes como si piensas que no puedes, tienes razón. — Henry Ford",
+      "La mente lo es todo: en lo que piensas, te conviertes. — Buda (atribuida)",
+      "No son las cosas las que nos perturban, sino la opinión que tenemos de ellas. — Epicteto",
+      "Lo que la mente del hombre puede concebir y creer, puede lograrlo. — Napoleon Hill",
+      "Los problemas no pueden resolverse con el mismo nivel de pensamiento que los creó. — Albert Einstein (atribuida)",
+      "Es propio de una mente educada ser capaz de entretener un pensamiento sin aceptarlo. — Aristóteles (atribuida)",
+      "La vida solo puede ser comprendida mirando hacia atrás, pero debe ser vivida mirando hacia adelante. — Søren Kierkegaard",
+      "No conviene quedarse soñando y olvidarse de vivir. — Dumbledore, Harry Potter y la piedra filosofal",
+      "Sufrimos más en la imaginación que en la realidad. — Séneca",
+      "Haz lo mejor que puedas hasta que sepas más; cuando sepas más, hazlo mejor. — Maya Angelou",
+      "Seguimos avanzando, abriendo nuevas puertas y haciendo cosas nuevas, porque somos curiosos. — Walt Disney",
+      "No te quedes en el pasado, no sueñes con el futuro: concentra la mente en el momento presente. — Buda (atribuida)",
+      "Todo lo que debemos decidir es qué hacer con el tiempo que se nos ha dado. — Gandalf, El Señor de los Anillos"
+    ],
+    "personal": [
+      "El mayor riesgo es no asumir ningún riesgo. En un mundo que cambia muy rápido, la única estrategia que garantiza el fracaso es no arriesgar. — Mark Zuckerberg",
+      "Muévete rápido y rompe cosas. — Mark Zuckerberg, lema de Facebook",
+      "Cuando algo es lo suficientemente importante, lo haces incluso si las probabilidades no están a tu favor. — Elon Musk",
+      "La persistencia es muy importante. No debes rendirte a menos que te veas obligado a hacerlo. — Elon Musk",
+      "Si no estás fallando, no estás innovando lo suficiente. — Elon Musk (atribuida)",
+      "Los verdaderos artistas entregan. — Steve Jobs",
+      "Si duplicas el número de experimentos que haces al año, duplicarás tu inventiva. — Jeff Bezos",
+      "La mejor manera de empezar es dejar de hablar y empezar a hacer. — Walt Disney (atribuida)",
+      "La oportunidad se pierde porque viene vestida con ropa de trabajo y parece trabajo. — Thomas Edison",
+      "Si te ofrecen una oportunidad increíble pero no estás seguro de poder hacerla, di que sí y aprende cómo después. — Richard Branson",
+      "Hoy es duro, mañana será peor, pero pasado mañana será hermoso. — Jack Ma",
+      "Si no te avergüenza la primera versión de tu producto, lo lanzaste demasiado tarde. — Reid Hoffman",
+      "Haz cosas que no escalen. — Paul Graham",
+      "Hecho es mejor que perfecto. — Lema de Facebook",
+      "Es imposible vivir sin fracasar en algo, a menos que vivas con tanta cautela que sea como no haber vivido. — J. K. Rowling",
+      "Nada en este mundo puede ocupar el lugar de la persistencia. — Calvin Coolidge",
+      "Las grandes obras no se realizan con fuerza, sino con perseverancia. — Samuel Johnson",
+      "El único modo de hacer un gran trabajo es amar lo que haces. — Steve Jobs",
+      "Si quieres aumentar tu tasa de éxito, duplica tu tasa de fracaso. — Thomas Watson, IBM (atribuida)",
+      "No importa cuántas veces falles. Solo tienes que acertar una vez. — Mark Cuban (atribuida)"
+    ],
+    "university": [
+      "Quien nunca ha cometido un error nunca ha probado algo nuevo. — Albert Einstein (atribuida)",
+      "La raíz de la educación es amarga, pero el fruto es dulce. — Aristóteles",
+      "La educación es el arma más poderosa que puedes usar para cambiar el mundo. — Nelson Mandela",
+      "Dime y lo olvido, enséñame y lo recuerdo, involúcrame y lo aprendo. — Benjamin Franklin (atribuida)",
+      "Todos necesitamos personas que nos den feedback. Así es como mejoramos. — Bill Gates",
+      "Hay que razonar desde los primeros principios en lugar de hacerlo por analogía. — Elon Musk",
+      "Si alguna vez hice un descubrimiento valioso, fue más por atención paciente que por cualquier otro talento. — Isaac Newton",
+      "Nunca veo lo que se ha hecho; solo veo lo que queda por hacer. — Marie Curie",
+      "Lo importante es no dejar de hacerse preguntas. — Albert Einstein",
+      "El saber es hijo de la experiencia. — Leonardo da Vinci",
+      "Lo que no puedo crear, no lo entiendo. — Richard Feynman",
+      "El primer principio es que no debes engañarte a ti mismo, y tú eres la persona más fácil de engañar. — Richard Feynman",
+      "La originalidad consiste en volver al origen. — Antoni Gaudí",
+      "La educación autodidacta es, creo, la única educación que existe. — Isaac Asimov",
+      "En algún lugar, algo increíble está esperando ser descubierto. — Carl Sagan (atribuida)",
+      "Aprender sin pensar es inútil; pensar sin aprender es peligroso. — Confucio, Analectas",
+      "Mientras enseñamos, aprendemos. — Séneca",
+      "La frase más peligrosa en el lenguaje es: siempre se ha hecho así. — Grace Hopper",
+      "La mejor manera de predecir el futuro es inventarlo. — Alan Kay",
+      "No puedes conectar los puntos hacia adelante; solo puedes hacerlo mirando hacia atrás. — Steve Jobs, Discurso en Stanford"
+    ],
+    "health": [
+      "Que la comida sea tu medicina y la medicina tu alimento. — Hipócrates (atribuida)",
+      "Caminar es la mejor medicina del hombre. — Hipócrates (atribuida)",
+      "La verdadera riqueza es la salud, no las piezas de oro y plata. — Mahatma Gandhi",
+      "La mayor riqueza es la salud. — Virgilio",
+      "La salud no lo es todo, pero sin ella todo lo demás es nada. — Arthur Schopenhauer",
+      "Mantener el cuerpo en buena salud es un deber; de lo contrario no podremos mantener fuerte y clara nuestra mente. — Buda (atribuida)",
+      "El médico del futuro interesará a sus pacientes en el cuidado del cuerpo, la dieta y la prevención de la enfermedad. — Thomas Edison (atribuida)",
+      "Una onza de prevención vale más que una libra de cura. — Benjamin Franklin",
+      "El arte de la medicina consiste en entretener al paciente mientras la naturaleza cura la enfermedad. — Voltaire",
+      "El mayor error en el tratamiento de las enfermedades es que hay médicos para el cuerpo y médicos para el alma, aunque no pueden separarse. — Platón (atribuida)",
+      "La salud es un estado de completo bienestar físico, mental y social, y no solamente la ausencia de enfermedad. — Organización Mundial de la Salud",
+      "Los hombres pierden la salud para juntar dinero; luego pierden el dinero para recuperar la salud. — Dalai Lama (atribuida)",
+      "Quien tiene salud tiene esperanza, y quien tiene esperanza lo tiene todo. — Proverbio árabe",
+      "La conservación de la salud es el primer bien y el fundamento de todos los demás bienes de esta vida. — René Descartes, Discurso del método",
+      "Es parte de la curación el deseo de ser curado. — Séneca",
+      "Más vale prevenir que curar. — Proverbio español",
+      "Mente sana en cuerpo sano. — Juvenal",
+      "La primera riqueza es la salud. — Ralph Waldo Emerson",
+      "Un hombre sano tiene mil deseos; un enfermo, solo uno. — Proverbio indio",
+      "Cuida tu cuerpo. Es el único lugar que tienes para vivir. — Jim Rohn"
+    ],
+    "pain": [
+      "Nadie me dijo nunca que el duelo se siente tanto como el miedo. — C. S. Lewis, Una pena en observación",
+      "La herida es el lugar por donde entra la luz. — Rumi (atribuida)",
+      "Vuestro dolor es la rotura de la cáscara que encierra vuestro entendimiento. — Kahlil Gibran, El Profeta",
+      "Cuando estés triste, mira de nuevo en tu corazón y verás que lloras por aquello que fue tu alegría. — Kahlil Gibran, El Profeta",
+      "En lo más profundo del invierno aprendí que dentro de mí habitaba un verano invencible. — Albert Camus",
+      "Cuando ya no podemos cambiar una situación, nos toca cambiarnos a nosotros mismos. — Viktor Frankl",
+      "Cuando pierdas, no pierdas la lección. — Dalai Lama (atribuida)",
+      "La felicidad se puede encontrar hasta en los momentos más oscuros, si uno recuerda encender la luz. — Dumbledore, Harry Potter y el prisionero de Azkaban",
+      "No sientas pena por los muertos, Harry; siente pena por los vivos y, sobre todo, por los que viven sin amor. — Dumbledore, Harry Potter y las Reliquias de la Muerte",
+      "Recuerda quién eres. — Mufasa, El Rey León",
+      "Será como si, en lugar de estrellas, te hubiera dado un montón de cascabeles que saben reír. — El Principito, Antoine de Saint-Exupéry",
+      "Qué afortunado soy de tener algo que hace que despedirse sea tan difícil. — Winnie the Pooh",
+      "No lloréis; no todas las lágrimas son un mal. — Gandalf, El Señor de los Anillos",
+      "Da palabra al dolor: la pena que no habla gime en el corazón hasta que lo rompe. — William Shakespeare, Macbeth",
+      "Hay quien habla sin tino como golpes de espada, mas la lengua de los sabios es medicina. — Libro de Proverbios 12:18",
+      "La blanda respuesta quita la ira, mas la palabra áspera hace subir el furor. — Libro de Proverbios 15:1",
+      "Ten paciencia con todo lo que no está resuelto en tu corazón. — Rainer Maria Rilke, Cartas a un joven poeta",
+      "No pierdas el deseo de caminar: cada día camino hacia mi bienestar y dejo atrás toda tristeza. — Søren Kierkegaard (carta a Henriette)",
+      "Solo los pensamientos que se tienen caminando valen algo. — Friedrich Nietzsche, Crepúsculo de los ídolos",
+      "Cuando salgas de la tormenta ya no serás la misma persona que entró en ella. De eso trata la tormenta. — Haruki Murakami, Kafka en la orilla"
+    ]
+  }
+}
