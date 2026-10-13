@@ -1,0 +1,10 @@
+.composition-layout { display: grid; grid-template-columns: minmax(240px, .7fr) minmax(0, 1.3fr); gap: 24px; align-items: center; margin: 10px 0 20px; }
+.composition-chart { margin: 0; min-width: 0; }
+.composition-chart h3 { margin: 0 0 6px; font-size: 13px; font-weight: 500; color: #d8e7ce; }
+.composition-chart .recharts-pie-label-text { font-size: 11px; }
+.composition-chart .chart-empty { min-height: 200px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+.composition-layout .detail-variables { min-width: 0; margin-bottom: 0; }
+@media (max-width: 1000px) {
+  .composition-layout { grid-template-columns: 1fr; gap: 10px; }
+  .composition-chart { width: 100%; max-width: 400px; margin: 0 auto; }
+}

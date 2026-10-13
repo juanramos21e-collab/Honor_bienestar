@@ -94,6 +94,62 @@ test('importar respaldo con conflicto, exportar y cambiar las dos imágenes', as
   await expect(page.locator('.stat-card').filter({ hasText: 'Tu último estado' }).locator('strong')).toHaveText('80%');
 });
 
+test('gráficas con huecos de calendario y composición del día, incluidos ceros y respuestas pendientes', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Usar en este dispositivo' }).click();
+  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  const record = (date: string, answers: Record<string, number>, weight: number | null, notes = '') => ({
+    date, answers, activities: {}, productivityMode: 'manual', weight, notes, updatedAt: `${date}T12:00:00Z`,
+  });
+  const entries = [
+    record('2026-10-01', { energy: 1 }, 50),
+    record('2026-10-02', {}, null, 'Un día sin mediciones'),
+    record('2026-10-03', { energy: 0 }, 52),
+    record('2026-10-10', { productivity: .5, energy: 1, thoughts: .25, health: .25 }, 55),
+  ];
+  await page.getByLabel('Importar Excel o respaldo').setInputFiles({ name: 'historial.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ version: 1, entries })) });
+  await page.getByRole('button', { name: 'Confirmar selección' }).click();
+  await page.getByRole('button', { name: 'Progreso', exact: true }).click();
+
+  const moodDots = page.locator('.mood-chart .recharts-area-dot');
+  const weightDots = page.locator('.weight-chart .recharts-line-dot');
+  await expect(moodDots).toHaveCount(3);
+  await expect(weightDots).toHaveCount(3);
+  for (const dots of [moodDots, weightDots]) {
+    const positions = await dots.evaluateAll(nodes => nodes.map(node => Number(node.getAttribute('cx'))));
+    // Dos días hasta el segundo punto; siete días más hasta el último registro.
+    expect((positions[2] - positions[1]) / (positions[1] - positions[0])).toBeCloseTo(3.5, 1);
+  }
+  for (const selector of ['.mood-chart .recharts-area-curve', '.weight-chart .recharts-line-curve']) {
+    const path = await page.locator(selector).getAttribute('d');
+    expect(path).not.toMatch(/NaN|Infinity/);
+    expect(path!.match(/M/g)).toHaveLength(1);
+  }
+
+  const composition = page.locator('.composition-chart');
+  await expect(composition.getByRole('heading', { name: 'Composición del día' })).toBeVisible();
+  await expect(composition.locator('.recharts-pie-sector')).toHaveCount(4);
+  await expect(composition.getByText('50%', { exact: true })).toBeVisible();
+  await expect(composition.getByText('25%', { exact: true })).toBeVisible();
+  await expect(composition.getByText('12.5%', { exact: true })).toHaveCount(2);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+
+  await page.getByLabel('Día del detalle').selectOption('2026-10-03');
+  await expect(composition.getByText('Las respuestas de este día están en cero.')).toBeVisible();
+  await expect(composition.locator('.recharts-pie-sector')).toHaveCount(0);
+  await page.getByLabel('Día del detalle').selectOption('2026-10-02');
+  await expect(composition.getByText('Aún no hay respuestas para mostrar la composición.')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Inicio', exact: true }).click();
+  await page.getByRole('button', { name: /¿Qué hiciste hoy/ }).click();
+  await page.getByRole('button', { name: 'Peso y cierre' }).click();
+  await page.getByLabel('¿Cuál es tu peso hoy?').fill('54');
+  await page.getByRole('button', { name: 'Guardar mi día', exact: true }).click();
+  await expect(page.getByRole('heading', { name: /Hola/ })).toBeVisible();
+  await expect(page.locator('.hero')).not.toContainText('Tu día está registrado');
+  await expect(page.locator('.hero .status-dot')).toHaveCount(0);
+});
+
 test('Google pendiente se explica sin fingir una sesión', async ({ page }) => {
   await page.goto('/'); await page.getByRole('button', { name: 'Continuar con Google' }).click();
   await expect(page.getByRole('dialog')).toContainText('falta conectar esta web con Firebase');

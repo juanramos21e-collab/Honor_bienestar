@@ -11,7 +11,7 @@ Web instalable en Android (PWA), con la misma información y fórmula de la apli
 - Menú principal: «¿Qué hiciste hoy?» y «Ver mi progreso».
 - Nueve actividades con los pesos de productividad del Excel; seis preguntas de estado, peso opcional y notas.
 - Un registro por fecha. Las respuestas guardadas reaparecen al editar; los cambios actualizan ese día. El borrador también se guarda mientras respondes.
-- Gráficas de estado, peso y variables con agrupación por día, semana, mes y año, filtros y detalle diario.
+- Gráficas de estado, peso y variables con agrupación por día, semana, mes y año, filtros y detalle diario con gráfica de torta. Estado y peso usan una escala de fechas y unen las mediciones disponibles sin convertir los días vacíos en ceros.
 - Guardado local en IndexedDB, apertura sin conexión tras la primera carga e instalación en Android.
 - Importación de `Data_Estado_Ani.xlsx` y respaldos JSON con revisión de fechas coincidentes; exportación de registros a Excel y respaldo JSON.
 - Personalización de nombre, imagen de portada e imagen del menú desde el celular. Esas preferencias quedan en cada dispositivo.
@@ -45,7 +45,7 @@ Para el sandbox de Codex, añade `npm_config_cache=/tmp/honor-npm` antes del com
 npm test
 ```
 
-Sin configuración Firebase, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e` (tres pruebas). Si Firebase ya está configurado, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e -- --grep-invert 'Google pendiente'` (dos pruebas). La prueba «Google pendiente» corresponde exclusivamente a una compilación sin configuración Firebase.
+Sin configuración Firebase, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e` (cuatro pruebas). Si Firebase ya está configurado, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e -- --grep-invert 'Google pendiente'` (tres pruebas). La prueba «Google pendiente» corresponde exclusivamente a una compilación sin configuración Firebase.
 
 Las pruebas unitarias cubren la fórmula, los pesos, vacíos frente a ceros, períodos, validación de datos, conflictos e importación del formato original. Las pruebas en Chromium con tamaño de pantalla Android cubren registro, edición sin duplicados, recuperación del borrador, recarga sin conexión, importación, respaldo y las dos imágenes. Si Chromium no está instalado, usa la instalación estándar de Playwright (`npx playwright install chromium`) y omite `CHROMIUM_PATH`.
 
