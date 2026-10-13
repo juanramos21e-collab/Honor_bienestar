@@ -16,7 +16,10 @@ export default function DayForm({ scope, initial, date, onBack, onSave, notify }
 }) {
   const [entry, setEntry] = useState(initial ?? emptyEntry(date));
   const [step, setStep] = useState(0); const [ready, setReady] = useState(false); const [saving, setSaving] = useState(false);
-  const [draftStatus, setDraftStatus] = useState(''); const [weightText, setWeightText] = useState(initial?.weight?.toString() ?? '');
+  const [savedDraft, setSavedDraft] = useState<DayEntry | null>(null);
+  const [failedDraft, setFailedDraft] = useState<DayEntry | null>(null);
+  const [weightText, setWeightText] = useState(initial?.weight?.toString() ?? '');
+  const draftStatus = savedDraft === entry ? 'Borrador guardado en este dispositivo' : failedDraft === entry ? 'No se pudo guardar el borrador' : 'Guardando borrador…';
   const lastWrite = useRef<Promise<void>>(Promise.resolve());
   const finished = useRef(false);
   useEffect(() => {
@@ -29,9 +32,8 @@ export default function DayForm({ scope, initial, date, onBack, onSave, notify }
   useEffect(() => {
     if (!ready || finished.current) return;
     // Serializar las escrituras evita que un borrador antiguo reemplace al último.
-    setDraftStatus('Guardando borrador…');
     lastWrite.current = lastWrite.current.catch(() => {}).then(() => saveDraft(scope, entry));
-    lastWrite.current.then(() => setDraftStatus('Borrador guardado en este dispositivo')).catch(() => { setDraftStatus('No se pudo guardar el borrador'); notify('No se pudo guardar. Revisa el espacio disponible del navegador.'); });
+    lastWrite.current.then(() => setSavedDraft(entry)).catch(() => { setFailedDraft(entry); notify('No se pudo guardar. Revisa el espacio disponible del navegador.'); });
   }, [entry, ready, scope, notify]);
   const setAnswer = (id: VariableId, value: number | null) => setEntry(e => ({ ...e, answers: { ...e.answers, [id]: value } }));
   const invalidWeight = weightText.trim() !== '' && (!Number.isFinite(Number(weightText.replace(',', '.'))) || Number(weightText.replace(',', '.')) <= 0 || Number(weightText.replace(',', '.')) > 500);
