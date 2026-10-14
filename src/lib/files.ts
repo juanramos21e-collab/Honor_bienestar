@@ -130,8 +130,23 @@ export async function exportExcel(entries: DayEntry[]) {
   download(new Blob([buffer as BlobPart], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `honor-registros-${localDate()}.xlsx`);
 }
 export async function prepareImage(file: File): Promise<string> {
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Elige una imagen JPG, PNG o WebP.');
+  const gif = file.type === 'image/gif' || /\.gif$/i.test(file.name);
+  if (!gif && !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Elige una imagen JPG, PNG, WebP o GIF.');
   if (file.size > 10 * 1024 * 1024) throw new Error('La imagen debe pesar menos de 10 MB.');
+  if (gif) {
+    const header = new TextDecoder().decode(await file.slice(0, 6).arrayBuffer());
+    if (header !== 'GIF87a' && header !== 'GIF89a') throw new Error('El archivo no contiene un GIF válido.');
+    const url = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('No se pudo leer el GIF.'));
+      reader.onload = () => typeof reader.result === 'string' ? resolve(reader.result) : reject(new Error('No se pudo leer el GIF.'));
+      reader.readAsDataURL(new Blob([file], { type: 'image/gif' }));
+    });
+    const image = new Image(); image.src = url;
+    try { await image.decode(); } catch { throw new Error('No se pudo abrir el GIF. Prueba con otro archivo.'); }
+    // Conservar el archivo completo mantiene todos los fotogramas de la animación.
+    return url;
+  }
   const bitmap = await createImageBitmap(file);
   const ratio = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement('canvas'); canvas.width = Math.max(1, Math.round(bitmap.width * ratio)); canvas.height = Math.max(1, Math.round(bitmap.height * ratio));

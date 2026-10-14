@@ -14,7 +14,7 @@ Web instalable en Android (PWA), con la misma información y fórmula de la apli
 - Gráficas de estado, peso y variables con agrupación por día, semana, mes y año, filtros y detalle diario con gráfica de torta. Estado y peso usan una escala de fechas y unen las mediciones disponibles sin convertir los días vacíos en ceros.
 - Guardado local en IndexedDB, apertura sin conexión tras la primera carga e instalación en Android.
 - Importación de `Data_Estado_Ani.xlsx` y respaldos JSON con revisión de fechas coincidentes; exportación de registros a Excel y respaldo JSON.
-- Personalización de nombre, imagen de portada e imagen del menú desde el celular. Esas preferencias quedan en cada dispositivo.
+- Personalización de nombre, imagen de portada e imagen del menú desde el celular. Admite JPG, PNG, WebP y GIF de hasta 10 MB; los GIF conservan su animación. La portada también aparece como fondo en las demás pantallas. Esas preferencias quedan en cada dispositivo.
 - Integración con Google/Firebase y cola local de sincronización. **Necesita la configuración de un proyecto Firebase para activarse.** No se simula una sesión cuando falta la configuración.
 - Catálogo de frases y orientación del Excel original. Las frases cambian cada dos horas o al pulsar el botón; se evita repetirlas durante siete días mientras haya opciones disponibles. La orientación conserva el criterio original de la variable de menor valor.
 
@@ -45,7 +45,7 @@ Para el sandbox de Codex, añade `npm_config_cache=/tmp/honor-npm` antes del com
 npm test
 ```
 
-Sin configuración Firebase, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e` (cuatro pruebas). Si Firebase ya está configurado, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e -- --grep-invert 'Google pendiente'` (tres pruebas). La prueba «Google pendiente» corresponde exclusivamente a una compilación sin configuración Firebase.
+Sin configuración Firebase, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e` (cinco pruebas). Si Firebase ya está configurado, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e -- --grep-invert 'Google pendiente'` (cuatro pruebas). La prueba «Google pendiente» corresponde exclusivamente a una compilación sin configuración Firebase.
 
 Las pruebas unitarias cubren la fórmula, los pesos, vacíos frente a ceros, períodos, validación de datos, conflictos e importación del formato original. Las pruebas en Chromium con tamaño de pantalla Android cubren registro, edición sin duplicados, recuperación del borrador, recarga sin conexión, importación, respaldo y las dos imágenes. Si Chromium no está instalado, usa la instalación estándar de Playwright (`npx playwright install chromium`) y omite `CHROMIUM_PATH`.
 

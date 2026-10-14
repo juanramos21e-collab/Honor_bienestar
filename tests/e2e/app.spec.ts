@@ -150,6 +150,38 @@ test('gráficas con huecos de calendario y composición del día, incluidos cero
   await expect(page.locator('.hero .status-dot')).toHaveCount(0);
 });
 
+test('conserva los GIF animados de portada y menú al recargar', async ({ page }) => {
+  const { readFile } = await import('node:fs/promises');
+  const bytes = await readFile('tests/fixtures/animated-background.gif');
+  const url = `data:image/gif;base64,${bytes.toString('base64')}`;
+  const gif = { name: 'fondo.gif', mimeType: 'image/gif', buffer: bytes };
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Usar en este dispositivo' }).click();
+  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  for (const [label, key] of [['Imagen de portada', 'hero'], ['Imagen del menú', 'panel']] as const) {
+    await expect(page.getByLabel(label, { exact: true })).toHaveAttribute('accept', /image\/gif/);
+    await page.getByLabel(label, { exact: true }).setInputFiles(gif);
+    await expect(page.locator(`.image-preview.${key}`)).toHaveAttribute('style', new RegExp(url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+  await page.reload();
+  const preview = page.locator('.image-preview.panel');
+  await expect(preview).toHaveAttribute('style', /data:image\/gif/);
+  const restored = await preview.evaluate(element => element.style.backgroundImage);
+  expect(restored).toContain(url); // El archivo entero, con sus dos fotogramas, sigue guardado.
+  await page.evaluate(async src => { const image = new Image(); image.src = src; await image.decode(); }, url);
+  const firstFrame = (await preview.screenshot()).toString('base64');
+  await expect.poll(async () => (await preview.screenshot()).toString('base64')).not.toBe(firstFrame);
+
+  await page.getByRole('button', { name: 'Inicio', exact: true }).click();
+  await expect(page.locator('.app-background')).toHaveAttribute('style', /data:image\/gif/);
+  const cover = page.locator('.hero').filter({ has: page.locator('.hero-content') });
+  const coverFrame = (await cover.screenshot({ animations: 'disabled' })).toString('base64');
+  await expect.poll(async () => (await cover.screenshot({ animations: 'disabled' })).toString('base64')).not.toBe(coverFrame);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await expect(page.locator('.sidebar.has-image')).toBeVisible();
+  expect(await page.locator('.sidebar').evaluate(element => element.style.backgroundImage)).toContain(url);
+});
+
 test('Google pendiente se explica sin fingir una sesión', async ({ page }) => {
   await page.goto('/'); await page.getByRole('button', { name: 'Continuar con Google' }).click();
   await expect(page.getByRole('dialog')).toContainText('falta conectar esta web con Firebase');
