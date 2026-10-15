@@ -1,13 +1,22 @@
 import JSZip from 'jszip';
 import type { Database, SqlJsStatic, SqlValue } from 'sql.js';
 import { normalizeHealth, type HealthId } from './health';
-import { HONOR_HEALTH_PACKAGE, MAX_HEALTH_DATABASE, MAX_HEALTH_ZIP, type HonorArchive, type HonorReading } from './honorHealth';
+import { HONOR_HEALTH_PACKAGE, MAX_HEALTH_DATABASE, MAX_HEALTH_ZIP, type ArchiveInventory, type HonorArchive, type HonorReading } from './honorHealth';
 
 type Row = Record<string, SqlValue>;
 type Interval = { start: number; end: number; value: number; modified: number; duration?: boolean; exclude?: { start: number; end: number }[] };
 const DAY = 86400000;
 const MAX_ROWS = 300000;
 const tables = ['steps_record_table', 'distance_record_table', 'active_calories_burned_record_table', 'exercise_session_record_table', 'heart_rate_record_table', 'resting_heart_rate_record_table', 'oxygen_saturation_record_table', 'weight_record_table', 'sleep_session_record_table'];
+const labels: Record<string, string> = {
+  steps: 'Pasos', distance: 'Distancia', active_calories_burned: 'Calorías activas', total_calories_burned: 'Calorías totales',
+  exercise_session: 'Ejercicio', heart_rate: 'Frecuencia cardíaca', resting_heart_rate: 'Pulso en reposo', oxygen_saturation: 'Oxígeno en sangre',
+  weight: 'Peso', sleep_session: 'Sueño', height: 'Altura', body_fat: 'Grasa corporal', body_temperature: 'Temperatura corporal',
+  skin_temperature: 'Temperatura de la piel', blood_pressure: 'Presión arterial', blood_glucose: 'Glucosa', vo2_max: 'VO₂ máximo',
+  speed: 'Velocidad', elevation_gained: 'Elevación ganada', floors_climbed: 'Pisos subidos', hydration: 'Hidratación', nutrition: 'Nutrición',
+  respiratory_rate: 'Frecuencia respiratoria', heart_rate_variability_rmssd: 'Variabilidad cardíaca',
+  menstruation_period: 'Menstruación', menstruation_flow: 'Flujo menstrual', basal_metabolic_rate: 'Metabolismo basal',
+};
 const finite = (v: SqlValue | undefined): v is number => typeof v === 'number' && Number.isFinite(v);
 const rounded = (n: number) => Math.round(n * 1e6) / 1e6;
 function number(row: Row, key: string): number {
@@ -137,7 +146,24 @@ export async function readHonorArchive(buffer: ArrayBuffer, SQL: SqlJsStatic): P
       return result;
     };
     if (!names.has('application_info_table')) throw new Error('La copia no contiene información de las aplicaciones de origen.');
-    const origins = query('SELECT row_id FROM application_info_table WHERE package_name = ?', [HONOR_HEALTH_PACKAGE]).map(row => number(row, 'row_id'));
+    const appColumns = db.exec('PRAGMA table_info(application_info_table)')[0]?.values.map(row => String(row[1])) ?? [];
+    const apps = query('SELECT row_id, package_name, ' + (appColumns.includes('app_name') ? 'app_name' : 'NULL AS app_name') + ' FROM application_info_table');
+    const origins = apps.filter(row => row.package_name === HONOR_HEALTH_PACKAGE).map(row => number(row, 'row_id'));
+    const inventory: ArchiveInventory = [];
+    for (const table of [...names].filter(name => /^[a-z_]+_record_table$/.test(name)).sort()) {
+      const columns = db.exec('PRAGMA table_info("' + table + '")')[0]?.values.map(row => String(row[1])) ?? [];
+      if (!columns.includes('app_info_id')) continue;
+      const counts = query('SELECT app_info_id, COUNT(*) AS records FROM "' + table + '" GROUP BY app_info_id');
+      if (!counts.length) continue;
+      inventory.push({
+        key: table, label: labels[table.replace(/_record_table$/, '')] ?? 'Otros datos de salud', supported: tables.includes(table),
+        sources: counts.map(row => {
+          const app = apps.find(app => app.row_id === row.app_info_id);
+          const kind = app?.package_name === HONOR_HEALTH_PACKAGE ? 'honor' : typeof app?.package_name === 'string' && app.package_name.startsWith('com.android.healthconnect.phone.') ? 'phone' : 'other';
+          return { kind, name: kind === 'honor' ? 'HONOR Health' : kind === 'phone' ? 'Teléfono' : typeof app?.app_name === 'string' ? app.app_name.slice(0, 80) : 'Otra aplicación', records: number(row, 'records') };
+        }),
+      });
+    }
     const readings = new Map<string, HonorReading>(), warnings = new Set<string>();
     let ignoredRecords = 0, sourceRecords = 0;
     const day = (key: string) => {
@@ -242,6 +268,6 @@ export async function readHonorArchive(buffer: ArrayBuffer, SQL: SqlJsStatic): P
       entry.health = normalizeHealth(entry.health) ?? {};
       if (entry.weight !== undefined && (entry.weight <= 0 || entry.weight > 500)) throw new Error('La copia contiene un peso fuera del rango permitido.');
     }
-    return { origin: HONOR_HEALTH_PACKAGE, readAt: new Date().toISOString(), entries, sourceRecords, ignoredRecords, warnings: [...warnings] };
+    return { origin: HONOR_HEALTH_PACKAGE, readAt: new Date().toISOString(), entries, sourceRecords, ignoredRecords, warnings: [...warnings], inventory };
   } finally { db.close(); }
 }

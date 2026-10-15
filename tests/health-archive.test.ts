@@ -23,6 +23,28 @@ describe('Copia de Health Connect, exclusivamente HONOR', () => {
     const result = await readHonorArchive(await archive(db), SQL); db.close();
     expect(result.origin).toBe(HONOR_HEALTH_PACKAGE); expect(result.entries).toEqual([]);
     expect(result.sourceRecords).toBe(0); expect(result.ignoredRecords).toBe(2);
+    expect(result.inventory).toEqual([
+      { key: 'distance_record_table', label: 'Distancia', supported: true, sources: [{ kind: 'other', name: 'Salud de HONOR', records: 1 }] },
+      { key: 'steps_record_table', label: 'Pasos', supported: true, sources: [{ kind: 'phone', name: 'Teléfono', records: 1 }] },
+    ]);
+  });
+  it('detecta calorías del teléfono sin importarlas y distingue tipos de HONOR aún no compatibles', async () => {
+    const db = testDatabase(SQL);
+    addInterval(db, 'active_calories_burned_record_table', 'energy', 200000, { app: 10 });
+    db.exec('CREATE TABLE total_calories_burned_record_table (row_id INTEGER, app_info_id INTEGER); INSERT INTO total_calories_burned_record_table VALUES (1,20)');
+    const result = await readHonorArchive(await archive(db), SQL); db.close();
+    expect(result.entries).toEqual([]);
+    expect(result.inventory).toEqual([
+      { key: 'active_calories_burned_record_table', label: 'Calorías activas', supported: true, sources: [{ kind: 'phone', name: 'Teléfono', records: 1 }] },
+      { key: 'total_calories_burned_record_table', label: 'Calorías totales', supported: false, sources: [{ kind: 'honor', name: 'HONOR Health', records: 1 }] },
+    ]);
+  });
+  it('lee calorías HONOR aunque la versión de la copia no incluya nombres visibles de aplicaciones', async () => {
+    const db = testDatabase(SQL); db.exec('ALTER TABLE application_info_table DROP COLUMN app_name');
+    addInterval(db, 'active_calories_burned_record_table', 'energy', 350000);
+    const result = await readHonorArchive(await archive(db), SQL); db.close();
+    expect(result.entries[0].health.activeCalories).toBe(350);
+    expect(result.inventory?.[0].sources).toEqual([{ kind: 'honor', name: 'HONOR Health', records: 1 }]);
   });
   it('lee solo el escritor oficial y reparte pasos, metros y calorías al cruzar medianoche', async () => {
     const db = testDatabase(SQL), start = Date.parse('2026-05-01T23:59:50-05:00'), end = start + 20000;

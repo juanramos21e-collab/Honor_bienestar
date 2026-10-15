@@ -3,14 +3,15 @@ import { authorizeDrive, forgetDriveAuthorization, restoreDriveAuthorization, ty
 import { downloadHealthZip, DriveAccessExpired, driveFileVersion, driveFolders, latestHealthZip, type DriveFolder } from './drive';
 import { parseHealthArchive } from './healthArchive';
 import { readSetting, saveSetting } from './storage';
-import { HONOR_HEALTH_PACKAGE, type HonorArchive } from './honorHealth';
+import { HEALTH_ARCHIVE_READER_VERSION, HONOR_HEALTH_PACKAGE, type ArchiveInventory, type HonorArchive } from './honorHealth';
 
 export type DriveConnection = {
   folder: DriveFolder; email: string; origin: typeof HONOR_HEALTH_PACKAGE;
   fileVersion?: string; fileName?: string; fileModifiedAt?: string;
   checkedAt?: string; importedAt?: string; days?: number; sourceRecords?: number; ignoredRecords?: number; warnings?: string[];
+  readerVersion?: number; inventory?: ArchiveInventory;
 };
-type Phase = 'loading' | 'disconnected' | 'authorizing' | 'checking' | 'current' | 'authorization_required' | 'waiting' | 'empty_honor' | 'error';
+type Phase = 'loading' | 'disconnected' | 'authorizing' | 'checking' | 'downloading' | 'reading' | 'current' | 'authorization_required' | 'waiting' | 'empty_honor' | 'error';
 export function useDriveHealth({ scope, user, ready, onSave }: { scope: string; user: User | null; ready: boolean; onSave: (archive: HonorArchive) => Promise<number> }) {
   const [connection, setConnection] = useState<DriveConnection | null>(null);
   const [phase, setPhase] = useState<Phase>('loading'), [error, setError] = useState('');
@@ -57,7 +58,7 @@ export function useDriveHealth({ scope, user, ready, onSave }: { scope: string; 
     if (err instanceof DriveAccessExpired) { forgetDriveAuthorization(scopeRef.current); auth.current = null; setPhase('authorization_required'); setError(''); }
     else { setPhase('error'); setError(err instanceof Error ? err.message : 'No se pudo consultar Drive.'); }
   };
-  const sync = async (force = false) => {
+  const sync = async (force = false, reread = false) => {
     if (!props.current.ready || !saved.current || locked.current || browsing.current || !navigator.onLine || document.hidden) return;
     if (!force && Date.now() - lastAttempt.current < 60000) return;
     const account = scopeRef.current, op = generation.current, before = saved.current;
@@ -73,13 +74,16 @@ export function useDriveHealth({ scope, user, ready, onSave }: { scope: string; 
       if (!valid(account, op)) return;
       if (!file || Number(file.size) === 0) { setPhase('waiting'); return; }
       const version = driveFileVersion(file);
-      if (version === before.fileVersion) {
+      if (!reread && version === before.fileVersion && before.readerVersion === HEALTH_ARCHIVE_READER_VERSION) {
         const checked = { ...before, checkedAt: new Date().toISOString() };
         await saveSetting(key(account), checked);
         if (valid(account, op)) { saved.current = checked; setConnection(checked); setPhase(checked.days ? 'current' : 'empty_honor'); setUpdatedDays(0); }
         return;
       }
+      setPhase('downloading');
       const bytes = await downloadHealthZip(file, access.accessToken, abort.signal);
+      if (!valid(account, op)) return;
+      setPhase('reading');
       const archive = await parseHealthArchive(bytes, abort.signal);
       // Evita procesar una descarga que Drive estaba reemplazando al leerla.
       const latest = await latestHealthZip(before.folder.id, access.accessToken, abort.signal);
@@ -88,7 +92,7 @@ export function useDriveHealth({ scope, user, ready, onSave }: { scope: string; 
       if (!props.current.ready) return;
       const count = await props.current.onSave(archive);
       if (!valid(account, op)) return;
-      const checked: DriveConnection = { ...before, fileVersion: version, fileName: file.name, fileModifiedAt: file.modifiedTime, checkedAt: new Date().toISOString(), ...(count ? { importedAt: new Date().toISOString() } : {}), days: archive.entries.length, sourceRecords: archive.sourceRecords, ignoredRecords: archive.ignoredRecords, warnings: archive.warnings };
+      const checked: DriveConnection = { ...before, fileVersion: version, fileName: file.name, fileModifiedAt: file.modifiedTime, checkedAt: new Date().toISOString(), ...(count ? { importedAt: new Date().toISOString() } : {}), days: archive.entries.length, sourceRecords: archive.sourceRecords, ignoredRecords: archive.ignoredRecords, warnings: archive.warnings, inventory: archive.inventory, readerVersion: HEALTH_ARCHIVE_READER_VERSION };
       await saveSetting(key(account), checked);
       if (valid(account, op)) { saved.current = checked; setConnection(checked); setUpdatedDays(count); setPhase(archive.entries.length ? 'current' : 'empty_honor'); }
     } catch (err) { if (valid(account, op)) fail(err); }
@@ -124,7 +128,7 @@ export function useDriveHealth({ scope, user, ready, onSave }: { scope: string; 
       }
     } catch (err) { if (valid(account, op)) fail(err); }
     finally { if (valid(account, op)) { locked.current = false; setBusy(false); } }
-    if (shouldSync && valid(account, op)) await syncRef.current(true);
+    if (shouldSync && valid(account, op)) await syncRef.current(true, true);
   };
   const openFolder = async (nextPath: DriveFolder[]) => {
     if (locked.current || !nextPath.length) return;

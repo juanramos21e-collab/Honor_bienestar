@@ -6,13 +6,15 @@ import { formatDate, type DayEntry, type Period } from '../lib/model';
 const tick = { fontSize: 11, fill: '#a5bfba' };
 const tooltip = { background: '#142326', border: '1px solid #47625d', borderRadius: 12, color: '#eff5ee' };
 export default function HealthProgress({ days, period }: { days: DayEntry[]; period: Period }) {
-  const [metric, setMetric] = useState<HealthId>('steps');
-  const [comparison, setComparison] = useState<HealthId>('sleepHours');
+  const [chosenMetric, setMetric] = useState<HealthId>();
+  const [chosenComparison, setComparison] = useState<HealthId>();
+  const available = HEALTH_METRICS.filter(m => days.some(d => d.health?.[m.id] !== undefined));
+  const metric = chosenMetric ?? available[0]?.id ?? 'steps';
+  const comparison = chosenComparison ?? available.find(m => m.id === 'sleepHours')?.id ?? available[0]?.id ?? 'sleepHours';
   const data = useMemo(() => aggregateHealth(days, period), [days, period]);
   const pairs = useMemo(() => pairedHealth(days, comparison), [days, comparison]);
   const selected = HEALTH_METRICS.find(m => m.id === metric)!;
   const compare = HEALTH_METRICS.find(m => m.id === comparison)!;
-  const available = HEALTH_METRICS.filter(m => days.some(d => d.health?.[m.id] !== undefined));
   const hasMetric = days.some(d => d.health?.[metric] !== undefined);
   const first = data[0]?.timestamp ?? 0, last = data.at(-1)?.timestamp ?? first;
   const domain = first === last ? [first - 43200000, last + 43200000] : [first, last];

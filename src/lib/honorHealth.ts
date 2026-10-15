@@ -2,6 +2,11 @@ import { HEALTH_METRICS, normalizeHealth, type HealthMetrics } from './health';
 import { emptyEntry, normalizeEntry, sameEntry, validDate, type DayEntry } from './model';
 
 export const HONOR_HEALTH_PACKAGE = 'com.hihonor.health';
+export const HEALTH_ARCHIVE_READER_VERSION = 2;
+export type ArchiveInventory = {
+  key: string; label: string; supported: boolean;
+  sources: { kind: 'honor' | 'phone' | 'other'; name: string; records: number }[];
+}[];
 export type HonorReading = { date: string; health: HealthMetrics; weight?: number };
 export type HonorArchive = {
   origin: typeof HONOR_HEALTH_PACKAGE;
@@ -10,6 +15,7 @@ export type HonorArchive = {
   sourceRecords: number;
   ignoredRecords: number;
   warnings: string[];
+  inventory?: ArchiveInventory;
 };
 export const MAX_HEALTH_ZIP = 20 * 1024 * 1024;
 export const MAX_HEALTH_DATABASE = 64 * 1024 * 1024;

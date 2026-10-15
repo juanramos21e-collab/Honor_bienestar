@@ -24,9 +24,15 @@ Se usan los offsets guardados y se convierten metros a kilómetros, calorías a 
 
 Solo se actualizan los campos recibidos. Las respuestas, actividades, apuntes, peso ausente y demás métricas se conservan. Se combina con los datos actuales en una transacción de IndexedDB y se incorpora a la cola de Firebase si hay cuenta conectada. No se eliminan días ni registros de Health Connect o Drive. Los valores inválidos o una mezcla de sueño incoherente detienen la actualización.
 
+## Revisar los datos encontrados
+
+En Datos de salud, **Datos encontrados en la copia** muestra cada tipo de medición, su origen, el número de registros y si esta versión lo admite. Se distinguen HONOR Health, el teléfono y otras aplicaciones aunque tengan nombres parecidos. La presencia de calorías o distancia en el ZIP no implica que su escritor sea HONOR. El filtro de importación acepta exclusivamente HONOR.
+
+Los estados de descarga y lectura confirman cuándo se procesa el ZIP y su archivo interno health_connect_export.db. El informe se guarda junto a la última copia revisada, sin guardar el ZIP ni la base de datos. Una lectura vacía distingue la falta de mediciones HONOR de tipos HONOR todavía no compatibles. La gráfica elige inicialmente una métrica disponible, en lugar de mostrar pasos vacíos si únicamente hay calorías u otra medición.
+
 ## Frecuencia y duración del acceso
 
-Se elige el ZIP de Health Connect más reciente entre los archivos directos de la carpeta elegida. No se recorren otras carpetas ni todo Drive. Se comprueba al volver al frente, al recuperar conexión y cada cinco minutos con la web visible. Se pausa durante el cuestionario o los conflictos. Una copia sin cambios no se vuelve a descargar; un archivo vacío, incompleto o reemplazado durante la lectura no se incorpora.
+Se elige el ZIP de Health Connect más reciente entre los archivos directos de la carpeta elegida. No se recorren otras carpetas ni todo Drive. Se comprueba al volver al frente, al recuperar conexión y cada cinco minutos con la web visible. Se pausa durante el cuestionario o los conflictos. Las comprobaciones automáticas evitan descargar otra vez una copia sin cambios. El botón Actualizar datos de salud sí fuerza su descarga, descompresión y lectura; una actualización del lector también revisa las copias ya procesadas. Un archivo vacío, incompleto o reemplazado durante la lectura no se incorpora.
 
 **Se reutiliza el acceso de Google al actualizar, cambiar de carpeta o recargar la misma pestaña.** Si al iniciar sesión Google devuelve un acceso que ya permite Drive, también se aprovecha: no se abre otra autorización. La sesión de Firebase por sí sola no concede ese permiso; se solicita la primera vez que falte. Se indica a Google la cuenta conectada sin forzar un selector de cuentas. Si el acceso caduca, se revoca o se cierra la pestaña, pulsa **Actualizar datos de salud** para renovarlo. La carpeta se recuerda: no se repite la guía ni se descargan archivos manualmente. Durante el acceso vigente, la consulta y la incorporación son automáticas. La copia de Android limita la frecuencia; no es lectura en tiempo real ni sincronización con la web cerrada.
 

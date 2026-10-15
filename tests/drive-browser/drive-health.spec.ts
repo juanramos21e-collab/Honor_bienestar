@@ -52,7 +52,7 @@ test('excluye la copia del teléfono y retoma Drive al recargar sin pedir Google
   await page.getByRole('dialog').getByRole('button', { name: 'Cancelar', exact: true }).click();
   await expect(page.getByRole('dialog')).not.toBeVisible();
   await expect(page.locator('.drive-health')).toContainText('todavía no contiene mediciones de HONOR Health');
-  expect(await page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(0);
+  expect(await page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 test('actualiza una copia nueva al volver a la app y conserva respuestas, peso y apuntes', async ({ page }) => {
@@ -74,11 +74,11 @@ test('actualiza una copia nueva al volver a la app y conserva respuestas, peso y
   expect(result.notes).toBe(entry.notes); expect(result.weight).toBe(66); expect(result.answers).toEqual(entry.answers); expect(result.health).toEqual({ steps: 5000 });
   await page.getByRole('button', { name: 'Actualizar datos de salud' }).click();
   await expect(page.locator('.drive-health')).toContainText('0 días actualizados');
-  expect(await page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(1);
+  expect(await page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(2);
   // No hace falta pulsar Actualizar: al volver al frente se consulta la nueva versión.
   await page.clock.install(); await page.clock.fastForward(61000);
   await page.evaluate(() => { (window as unknown as { __drive: { version: string } }).__drive.version = '2'; window.dispatchEvent(new Event('focus')); });
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(2);
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(3);
   expect((await record()).notes).toBe(entry.notes);
   await page.getByRole('button', { name: 'Ver mi progreso registrado' }).click();
   await expect(page.locator('.health-summary')).toContainText('5,000');
@@ -88,9 +88,9 @@ test('actualiza una copia nueva al volver a la app y conserva respuestas, peso y
   await page.getByLabel('Algo que quieras recordar').fill('Edición sintética en curso.');
   await page.clock.fastForward(61000);
   await page.evaluate(() => { (window as unknown as { __drive: { version: string } }).__drive.version = '3'; window.dispatchEvent(new Event('focus')); });
-  expect(await page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(2);
+  expect(await page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(3);
   await page.getByRole('button', { name: 'Guardar cambios', exact: true }).click();
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(3);
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(4);
   expect((await record()).notes).toBe('Edición sintética en curso.');
 });
 test('un permiso vencido detiene la consulta y desvincular conserva el historial', async ({ page }) => {
@@ -146,4 +146,55 @@ test('reutiliza el permiso con la misma cuenta Google y lo descarta al salir o c
   await expect(page.locator('.drive-health').getByRole('button', { name: 'Conectar Drive', exact: true })).toBeVisible();
   await expect(page.getByText('0 días registrados en este historial.')).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as { __drive: { authCalls: number } }).__drive.authCalls)).toBe(1);
+});
+
+
+test('Drive descomprime el ZIP e incorpora y grafica solo las calorías de HONOR', async ({ page }) => {
+  const SQL = await testSql(), db = testDatabase(SQL);
+  addInterval(db, 'active_calories_burned_record_table', 'energy', 350000);
+  addInterval(db, 'active_calories_burned_record_table', 'energy', 900000, { id: 2, app: 10 });
+  const zip = await archive(db); db.close();
+  await setup(page, zip); await link(page);
+  await expect(page.locator('.drive-health')).toContainText('1 días actualizados');
+  await expect(page.getByText('Si Google rechaza la conexión', { exact: true })).toHaveCount(0);
+  await page.locator('.drive-inventory summary').click();
+  const rows = page.locator('.drive-inventory tbody tr');
+  await expect(rows.filter({ hasText: 'HONOR Health' })).toContainText('Calorías activas');
+  await expect(rows.filter({ hasText: 'HONOR Health' })).toContainText('Admitido');
+  await expect(rows.filter({ hasText: 'Teléfono' })).toContainText('Fuera del filtro HONOR');
+  await page.getByRole('button', { name: 'Ver mi progreso registrado' }).click();
+  await expect(page.getByLabel('Evolución de salud')).toHaveValue('activeCalories');
+  await expect(page.locator('.health-summary')).toContainText('Calorías activas');
+  await expect(page.locator('.health-summary')).toContainText('350');
+  await expect(page.locator('.health-summary')).not.toContainText('900');
+  await expect(page.locator('.health-progress .recharts-line-dot')).toHaveCount(1);
+});
+
+test('Actualizar vuelve a leer el ZIP sin cambios y una nueva versión del lector revisa la copia automáticamente', async ({ page }) => {
+  const SQL = await testSql(), db = testDatabase(SQL);
+  addInterval(db, 'active_calories_burned_record_table', 'energy', 350000);
+  const zip = await archive(db); db.close();
+  await setup(page, zip); await link(page);
+  await expect(page.locator('.drive-health')).toContainText('1 días actualizados');
+  await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>(resolve => { const r = indexedDB.open('honor-bienestar-v1'); r.onsuccess = () => resolve(r.result); });
+    await new Promise<void>(resolve => {
+      const tx = db.transaction(['settings', 'days'], 'readwrite');
+      tx.objectStore('days').delete('guest|2026-05-01');
+      const read = tx.objectStore('settings').get('honor-drive-v1|guest');
+      read.onsuccess = () => tx.objectStore('settings').put({ ...read.result, readerVersion: 1, inventory: undefined }, 'honor-drive-v1|guest');
+      tx.oncomplete = () => resolve();
+    });
+  });
+  await page.reload();
+  await expect(page.locator('.drive-health')).toContainText('1 días actualizados');
+  expect(await page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(1);
+  await expect(page.locator('.drive-inventory summary')).toBeVisible();
+  await page.getByRole('button', { name: 'Actualizar datos de salud' }).click();
+  await expect(page.locator('.drive-health')).toContainText('0 días actualizados');
+  expect(await page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(2);
+  await page.reload();
+  await expect(page.locator('.drive-health')).toContainText('1 días con mediciones');
+  // Una comprobación automática sin novedades sigue evitando descargas repetidas.
+  expect(await page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(0);
 });
