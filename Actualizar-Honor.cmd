@@ -9,10 +9,10 @@ if errorlevel 1 goto :node_missing
 where npx.cmd >nul 2>&1
 if errorlevel 1 goto :node_missing
 set "HONOR_UPDATE_DIR=%TEMP%\Honor-actualizar-%RANDOM%-%RANDOM%"
-set "HONOR_UPDATE_URL=https://github.com/juanramos21e-collab/Honor_bienestar/raw/0892673123edd71b8641d557dc7ff37fc8ec737d/Honor-Android-y-web-salud.zip"
-set "HONOR_UPDATE_SHA256=9fe04dc3061211359f6ce2d91a3f5f9d793ec83621787092d05b3726194455fd"
+set "HONOR_UPDATE_URL=https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Honor-web-y-Android-corregido.zip"
+set "HONOR_UPDATE_SHA256=6c7cf1e751f484307781fafcaf67a58f4aeb5f9237fcd6b004dc3f3baedf950f"
 echo 1. Descargando y comprobando el paquete. Espera sin cerrar esta ventana...
-powershell.exe -NoLogo -NoProfile -Command "$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; try { [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; New-Item -ItemType Directory -Path $env:HONOR_UPDATE_DIR -ErrorAction Stop | Out-Null; $zip=Join-Path $env:HONOR_UPDATE_DIR 'Honor.zip'; Invoke-WebRequest -UseBasicParsing -Uri $env:HONOR_UPDATE_URL -OutFile $zip -TimeoutSec 120; if ((Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash -ne $env:HONOR_UPDATE_SHA256) { throw 'La comprobacion del ZIP fallo. No se publicara este archivo.' }; Expand-Archive -LiteralPath $zip -DestinationPath $env:HONOR_UPDATE_DIR; $root=Join-Path $env:HONOR_UPDATE_DIR 'Honor_bienestar'; $index=Join-Path $root 'dist\index.html'; if ((Get-Content -Raw -LiteralPath $index) -notlike '*/assets/index-C_0Fe7Lk.js*') { throw 'El paquete no contiene la version esperada.' }; Write-Host 'Paquete correcto: incluye voz y salud.' } catch { Write-Host $_.Exception.Message; exit 1 }"
+powershell.exe -NoLogo -NoProfile -Command "$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; try { [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; New-Item -ItemType Directory -Path $env:HONOR_UPDATE_DIR -ErrorAction Stop | Out-Null; $zip=Join-Path $env:HONOR_UPDATE_DIR 'Honor.zip'; Invoke-WebRequest -UseBasicParsing -Uri $env:HONOR_UPDATE_URL -OutFile $zip -TimeoutSec 120; if ((Get-FileHash -Algorithm SHA256 -LiteralPath $zip).Hash -ne $env:HONOR_UPDATE_SHA256) { throw 'La comprobacion del ZIP fallo. No se publicara este archivo.' }; Expand-Archive -LiteralPath $zip -DestinationPath $env:HONOR_UPDATE_DIR; $root=Join-Path $env:HONOR_UPDATE_DIR 'Honor_bienestar'; $index=Join-Path $root 'dist\index.html'; if ((Get-Content -Raw -LiteralPath $index) -notlike '*/assets/index-0FUkHDhP.js*') { throw 'El paquete no contiene la version esperada.' }; Write-Host 'Paquete correcto: incluye voz y salud.' } catch { Write-Host $_.Exception.Message; exit 1 }"
 if errorlevel 1 goto :prepare_error
 pushd "%HONOR_UPDATE_DIR%\Honor_bienestar"
 if errorlevel 1 goto :prepare_error
@@ -24,7 +24,7 @@ popd
 if not "%HONOR_DEPLOY_EXIT%"=="0" goto :deploy_error
 echo.
 echo 3. Comprobando la version publicada...
-powershell.exe -NoLogo -NoProfile -Command "$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; try { [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $url='https://honor-bienestar.firebaseapp.com/index.html?honor-check='+[DateTimeOffset]::UtcNow.ToUnixTimeSeconds(); $page=Invoke-WebRequest -UseBasicParsing -Uri $url -Headers @{'Cache-Control'='no-cache'} -TimeoutSec 30; if ($page.Content -notlike '*/assets/index-C_0Fe7Lk.js*') { throw 'La version publicada no coincide todavia con el paquete.' }; Write-Host 'Version con voz y salud comprobada en Firebase.' } catch { Write-Host $_.Exception.Message; exit 1 }"
+powershell.exe -NoLogo -NoProfile -Command "$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; try { [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; $url='https://honor-bienestar.firebaseapp.com/index.html?honor-check='+[DateTimeOffset]::UtcNow.ToUnixTimeSeconds(); $page=Invoke-WebRequest -UseBasicParsing -Uri $url -Headers @{'Cache-Control'='no-cache'} -TimeoutSec 30; if ($page.Content -notlike '*/assets/index-0FUkHDhP.js*') { throw 'La version publicada no coincide todavia con el paquete.' }; Write-Host 'Version con voz y salud comprobada en Firebase.' } catch { Write-Host $_.Exception.Message; exit 1 }"
 if errorlevel 1 goto :verify_error
 echo.
 echo ACTUALIZACION COMPLETADA Y COMPROBADA.
