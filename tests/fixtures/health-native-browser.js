@@ -1,6 +1,6 @@
 (() => {
   const model = {
-    state: 'available', granted: [], installed: false, sources: [{ id: 'com.hihonor.health', label: 'Salud de HONOR' }],
+    state: 'available', granted: JSON.parse(localStorage.getItem('fixture-health-granted') || '[]'), installed: false, sources: [{ id: 'com.hihonor.health', label: 'Salud de HONOR' }],
     entries: [], calls: [], denied: false, readError: false,
   };
   const status = () => ({ availability: model.state, device: { manufacturer: 'Xiaomi', model: 'Dispositivo de prueba', androidVersion: '14' }, apps: [{ id: 'com.hihonor.health', label: 'Salud de HONOR', installed: model.installed }], granted: model.granted });
@@ -11,7 +11,7 @@
       model.calls.push({ plugin, method, options });
       if (plugin === 'DeviceTools') return method === 'requestMicrophone' ? { granted: true } : {};
       if (method === 'status') return status();
-      if (method === 'requestAccess') { model.granted = model.denied ? [] : ['READ_STEPS', 'READ_SLEEP', 'READ_HEART_RATE']; return status(); }
+      if (method === 'requestAccess') { model.granted = model.denied ? [] : ['READ_STEPS', 'READ_SLEEP', 'READ_HEART_RATE']; localStorage.setItem('fixture-health-granted', JSON.stringify(model.granted)); return status(); }
       if (method === 'openSetup') return {};
       if (method === 'sources') return { sources: model.sources };
       if (method === 'read') {
