@@ -13,7 +13,7 @@ export const cloudConfigured = Object.values(config).every(v => typeof v === 'st
 let clientPromise: ReturnType<typeof createClient> | undefined;
 async function createClient() {
   const [appModule, authModule, firestore] = await Promise.all([import('firebase/app'), import('firebase/auth'), import('firebase/firestore')]);
-  const app = appModule.getApps()[0] ?? appModule.initializeApp(config);
+  const app = appModule.getApps().find(app => app.name === '[DEFAULT]') ?? appModule.initializeApp(config);
   const auth = authModule.getAuth(app);
   await authModule.setPersistence(auth, authModule.browserLocalPersistence);
   return { auth, db: firestore.getFirestore(app), authModule, firestore };
