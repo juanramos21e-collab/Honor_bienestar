@@ -29,8 +29,7 @@ test('Android genérico: detectar, pedir lectura, actualizar, guardar y ver prog
   await card(page).getByRole('button', { name: 'Buscar aplicaciones con datos', exact: true }).click();
   await expect(card(page).getByLabel('Aplicación de origen')).toHaveValue('com.hihonor.health');
   await card(page).getByRole('button', { name: 'Actualizar datos', exact: true }).click();
-  await expect(card(page)).toContainText('1 días con mediciones · 1 días para incorporar');
-  await card(page).getByRole('button', { name: 'Guardar lecturas en mi historial', exact: true }).click();
+  await expect(card(page)).toContainText('1 días con mediciones · 1 días actualizados');
   await expect(card(page)).toContainText('Último guardado de salud:');
   await page.reload();
   await expect(card(page)).toContainText('Último guardado de salud:');

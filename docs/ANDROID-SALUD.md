@@ -12,9 +12,9 @@ Esto no garantiza acceso a cualquier reloj. El reloj se sincroniza con su aplica
 4. Sincroniza el reloj en su aplicación y habilita que esa aplicación comparta datos con Health Connect, si ofrece esa función.
 5. En Honor, pulsa **Conectar datos de salud** y concede las lecturas que quieras compartir. No se solicitan permisos para escribir o borrar datos de salud.
 6. Elige hasta 30 días y pulsa **Buscar aplicaciones con datos**. Selecciona el origen y pulsa **Actualizar datos**.
-7. Revisa la lectura y pulsa **Guardar lecturas en mi historial**. El enlace **Ver mi progreso registrado** abre las gráficas existentes.
+7. Las mediciones válidas se incorporan al historial al pulsar Actualizar datos. El origen se recuerda para las próximas consultas. El enlace **Ver mi progreso registrado** abre las gráficas existentes.
 
-Las respuestas, actividades, apuntes y mediciones no recibidas se conservan. Los valores recibidos del origen elegido reemplazan esas mismas mediciones, después de la revisión. Repetir una lectura idéntica no crea registros nuevos. Si las fases anteriores resultan incompatibles con un total de sueño nuevo, la actualización se detiene para revisar el día; no se borran fases automáticamente.
+Las respuestas, actividades, apuntes y mediciones no recibidas se conservan. Los valores recibidos del origen elegido reemplazan esas mismas mediciones, al actualizar. Repetir una lectura idéntica no crea registros nuevos. Si las fases anteriores resultan incompatibles con un total de sueño nuevo, la actualización se detiene para revisar el día; no se borran fases automáticamente.
 
 Se distinguen la última consulta y el último guardado. Una consulta vacía no se presenta como una sincronización exitosa. Health Connect limita el historial accesible según sus permisos y la fecha de concesión; el límite de 30 días de esta interfaz no amplía esos permisos.
 
