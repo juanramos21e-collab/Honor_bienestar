@@ -27,3 +27,9 @@ El ZIP contiene fuente y web compilada, sin APK, datos personales, bases de salu
 Código: [main](https://github.com/juanramos21e-collab/Honor_bienestar/tree/main). Versión: 0fc3de8259d3996e8363f3dd95a442125af901d4.
 
 SHA-256 del ZIP: 935d15479b24a2a791302597cdaafa09f06593fdefd9390ccef89d871fbe07a1.
+
+## Plan de mejoras del prototipo
+
+[Descargar Word de una página: secuencias y requisitos para las dos mejoras](https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Honor-plan-de-mejoras.docx)
+
+Documento general sobre integración de datos HONOR y chatbot con IA por voz, con Python, machine learning, requisitos y secuencia de implementación.
