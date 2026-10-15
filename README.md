@@ -1,6 +1,6 @@
-# Honor: acceso de Drive reutilizado
+# Honor: lectura del ZIP de Drive y origen de datos
 
-[Descargar actualización web compilada](https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Honor-web-Drive-sesion.zip)
+[Descargar actualización web compilada](https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Honor-web-Drive-lectura.zip)
 
 1. Extrae el ZIP en una carpeta nueva y abre **Honor_bienestar**.
 2. Escribe **cmd** en la barra de direcciones del Explorador y pulsa Enter.
@@ -10,18 +10,20 @@
 npx --yes firebase-tools@15.33.0 deploy --only hosting,firestore:rules --project honor-bienestar
 ```
 
-Cuando aparezca **Deploy complete!**, abre https://honor-bienestar.web.app y pulsa Ctrl+F5. Si aparece un aviso de nueva versión, guarda tu registro y pulsa Actualizar.
+Espera **Deploy complete!**, abre https://honor-bienestar.web.app y pulsa Ctrl+F5. Si hay aviso de nueva versión, guarda tu registro y pulsa Actualizar.
 
-Se quitó el párrafo indicado de **Datos de salud**. **Actualizar datos de salud** reutiliza el acceso y la carpeta vinculada; recargar la misma pestaña ya no obliga a conectar Google de nuevo. Si Google devuelve un acceso con permiso de Drive al iniciar sesión, también se aprovecha sin abrir otra autorización. Se indica a Google la cuenta conocida sin forzar un selector.
+En **Cuenta y ajustes → Datos de salud**, **Actualizar datos de salud** descarga, descomprime y lee el ZIP aunque Drive informe que no ha cambiado. Las comprobaciones automáticas conservan el ahorro de descargas; una nueva versión del lector revisa las copias anteriores.
 
-Google exige el permiso de Drive la primera vez. La sesión de Firebase por sí sola no lo concede. El acceso temporal se mantiene en la sesión de la pestaña y caduca en unos 55 minutos; cerrar la pestaña, cerrar sesión, revocar el permiso o desvincular lo descarta. Si hace falta renovarlo, pulsa **Actualizar datos de salud**; la carpeta se recuerda.
+**Datos encontrados en la copia** muestra los tipos de mediciones, orígenes, cantidades y compatibilidad. Se importa exclusivamente el escritor oficial HONOR Health. La presencia de datos del teléfono en un ZIP no demuestra que HONOR haya escrito mediciones. Sincroniza el dispositivo en HONOR Health y comprueba los registros de ese origen en Health Connect antes de esperar su siguiente exportación a Drive.
 
-Se comprueba la copia al volver al frente y cada cinco minutos con la web visible y autorizada. La frecuencia depende de la exportación de Health Connect. Se mantiene el filtro exclusivo HONOR, la voz por secciones, las gráficas, los GIF y la sincronización de registros. No se borra el historial.
+Se retiró el apartado «Si Google rechaza la conexión». Las gráficas de salud eligen inicialmente una métrica con datos, incluidas las calorías cuando son las únicas disponibles. Se mantienen el acceso temporal de Google, la carpeta guardada, las respuestas, los apuntes, la voz y los GIF.
 
-Google Drive API y el consentimiento OAuth de lectura deben estar habilitados en el proyecto. La conexión con la cuenta real se comprueba después de publicar. La [guía completa](https://github.com/juanramos21e-collab/Honor_bienestar/blob/main/docs/DRIVE-SALUD.md) y **LEEME-PRIMERO.txt** describen los límites.
+La guía completa está en [DRIVE-SALUD.md](https://github.com/juanramos21e-collab/Honor_bienestar/blob/main/docs/DRIVE-SALUD.md) y el paquete incluye **LEEME-PRIMERO.txt**.
 
-ZIP con fuente y web compilada, sin APK, datos personales, bases de salud ni claves privadas. **50 pruebas unitarias y 17 escenarios de navegador** pasaron. Google se simula; el ZIP, SQLite, el worker y su WASM se procesan realmente.
+**52 pruebas unitarias y 19 escenarios de navegador** pasaron. Google y su API se simulan; ZIP, SQLite, worker y WASM se ejecutan realmente. También se comprobó localmente el archivo aportado, sin incluirlo en Git ni en el paquete. No se ha consultado la carpeta privada del usuario desde este entorno.
 
-Código: [main](https://github.com/juanramos21e-collab/Honor_bienestar/tree/main). Versión: ffb5e100d787dd23fa88b05a4fe9c3eccdc52e14.
+El ZIP contiene fuente y web compilada, sin APK, datos personales, bases de salud ni claves privadas. Compatible con Firebase Hosting Spark.
 
-SHA-256 del ZIP: abc692252dc23e7bfef3f87233e2a6dd39e1018ecf665166fc7409e415377927.
+Código: [main](https://github.com/juanramos21e-collab/Honor_bienestar/tree/main). Versión: 0fc3de8259d3996e8363f3dd95a442125af901d4.
+
+SHA-256 del ZIP: 935d15479b24a2a791302597cdaafa09f06593fdefd9390ccef89d871fbe07a1.
