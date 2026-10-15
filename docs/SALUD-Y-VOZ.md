@@ -2,6 +2,8 @@
 
 En el registro del día, abre **Peso y cierre → Datos de mi reloj** para introducirlos manualmente. La versión Android también añade **Ajustes → Datos de salud** para consultar Health Connect con autorización. Consulta [Android y datos de salud](ANDROID-SALUD.md) para instalar, conectar y comprobar si tu aplicación de origen comparte mediciones. No hay una conexión directa a la nube de HONOR.
 
+La pantalla web enlaza a [HONOR Health oficial en Google Play](https://play.google.com/store/apps/details?id=com.hihonor.health), sin ofrecer la instalación de un APK externo como paso del registro. Instalar la app oficial no da a la web acceso a sus mediciones privadas: el acceso automático sigue necesitando una integración autorizada. El navegador conserva el registro manual y las gráficas. La versión Android de este proyecto y HONOR Health son aplicaciones distintas.
+
 | Dato | Unidad |
 | --- | --- |
 | Pasos | Número entero |
@@ -23,11 +25,11 @@ La gráfica **Relación con tu estado** representa cada día que tiene tanto la 
 
 En el registro, elige **Responder por voz**:
 
-- **Completa:** lee la pregunta y las opciones antes de escucharte.
-- **Breve:** dice «Pregunta 1», «Pregunta 2»… La pregunta queda visible en pantalla. En los apuntes pregunta cómo te sientes y al final pide confirmar.
-- Puedes incluir o excluir las preguntas del reloj y elegir una escala de cuatro o cinco respuestas.
+- **Completa:** anuncia cómo responder al entrar en cada sección y lee las preguntas antes de escucharte.
+- **Breve:** anuncia cómo responder al entrar en cada sección; después dice «Pregunta 1», «Pregunta 2»… La pregunta queda visible en pantalla. En los apuntes pregunta cómo te sientes y al final pide confirmar.
+- Las preguntas del reloj son opcionales y están desactivadas al empezar. Puedes incluirlas antes de iniciar el recorrido.
 
-La escala de cuatro es **1 Nada, 2 Poco, 3 Bastante, 4 Mucho**; la de cinco añade **3 Medio**, desplazando Bastante y Mucho a 4 y 5. En las actividades también puedes decir **sí** o **no**. Las respuestas parciales se conservan con su porcentaje. Los botones manuales de estado mantienen sus cinco valores anteriores.
+Las actividades aceptan **sí** o **no**, sin números ni grados intermedios. Al pasar a «Cómo me siento», anuncia **nada, poco, medio, bastante o mucho**: esas palabras guardan los mismos valores que los botones manuales (0%, 25%, 50%, 75% y 100%). Al pasar al peso, anuncia que debes decirlo en **kilogramos**, por ejemplo «cincuenta y cuatro coma tres kilos». Si la respuesta no corresponde a la sección, repite las instrucciones de esa sección y espera, sin avanzar. Los registros anteriores conservan sus valores.
 
 Pulsa **Comenzar por voz** y permite el micrófono cuando el navegador lo solicite. Mientras se lee, el micrófono está cerrado. Al terminar la lectura suena una señal breve; después aparece **Habla ahora** y se abre el turno. Si el dispositivo no permite la señal sonora, espera la señal visual.
 

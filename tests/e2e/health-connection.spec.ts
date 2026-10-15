@@ -3,11 +3,12 @@ import { expect, test, type Page } from '@playwright/test';
 async function start(page: Page) { await page.goto('/'); await page.getByRole('button', { name: 'Usar en este dispositivo' }).click(); await page.getByRole('button', { name: 'Ajustes', exact: true }).click(); }
 const card = (page: Page) => page.locator('.health-connection');
 
-test('navegador: explica el acceso Android sin fingir detección de aplicaciones', async ({ page }) => {
+test('navegador: ofrece HONOR Health oficial sin prometer acceso a sus datos ni pedir instalar un APK', async ({ page }) => {
   await start(page);
   await expect(card(page).getByRole('heading', { name: 'Datos de salud', exact: true })).toBeVisible();
-  await expect(card(page)).toContainText('necesitas la versión Android');
-  await expect(card(page).getByRole('link', { name: 'Descargar versión Android' })).toHaveAttribute('href', 'https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Honor-salud-android.apk');
+  await expect(card(page)).toContainText('no conecta automáticamente sus datos con esta web');
+  await expect(card(page).getByRole('link', { name: 'HONOR Health en Google Play' })).toHaveAttribute('href', 'https://play.google.com/store/apps/details?id=com.hihonor.health');
+  await expect(card(page).getByRole('link', { name: 'Descargar versión Android' })).toHaveCount(0);
   await expect(card(page).getByRole('button', { name: 'Actualizar datos', exact: true })).toHaveCount(0);
 });
 
@@ -87,7 +88,7 @@ test('voz Android: la lectura nativa termina antes de la señal y de abrir el mi
   expect(await page.evaluate('window.__nativeVoice.listening')).toBe(false);
   await page.evaluate('window.__nativeVoice.resolveCue()');
   await expect.poll(() => page.evaluate('window.__nativeVoice.listening')).toBe(true);
-  await page.evaluate('window.__nativeVoice.resolveListen("cuatro")');
+  await page.evaluate('window.__nativeVoice.resolveListen("sí")');
   await expect(page.locator('.voice-counter')).toContainText('Pregunta 2');
   await page.getByRole('button', { name: 'Pausar voz' }).click();
   await expect.poll(() => page.evaluate('window.__nativeVoice.listening')).toBe(false);

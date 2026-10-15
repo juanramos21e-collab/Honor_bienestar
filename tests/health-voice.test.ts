@@ -31,20 +31,23 @@ describe('Respuestas de voz en español', () => {
     for (const [text, value] of [['54,3 kg', 54.3], ['cincuenta y cuatro coma tres', 54.3], ['siete coma veinticinco', 7.25], ['ocho mil quinientos', 8500], ['8.500 pasos', 8500], ['98%', 98], ['cero coma cero cinco', .05]] as const) expect(spokenNumber(text)).toBe(value);
     for (const text of ['uno dos', 'mucho', 'tengo 60 o 70', '-1']) expect(spokenNumber(text)).toBeNull();
   });
-  it('ofrece escalas de cuatro y cinco sin cambiar la fórmula y acepta sí/no', () => {
+  it('acepta solo sí/no en actividades y las cinco palabras de estado con los mismos valores del formulario', () => {
     const all = voiceQuestions(false), feeling = all.find(q => q.kind === 'scale')!, activity = all[0];
-    expect(parseVoiceValue(feeling, 'tres', 4)).toBeCloseTo(2 / 3);
-    expect(parseVoiceValue(feeling, 'tres', 5)).toBe(.5);
-    expect(parseVoiceValue(feeling, 'cinco', 4)).toBeNull();
-    expect(parseVoiceValue(activity, 'sí', 4)).toBe(1); expect(parseVoiceValue(activity, 'no', 4)).toBe(0);
-    expect(parseVoiceValue(activity, 'dos', 4)).toBeCloseTo(1 / 3);
+    for (const text of ['sí', 'Sí.', 'si', 'sí lo hice']) expect(parseVoiceValue(activity, text)).toBe(1);
+    for (const text of ['no', 'No.', 'no lo hice']) expect(parseVoiceValue(activity, text)).toBe(0);
+    for (const text of ['uno', 'cinco', '1', '5', 'poco']) expect(parseVoiceValue(activity, text)).toBeNull();
+    for (const [text, value] of [['nada', 0], ['Poco.', .25], ['medio', .5], ['Bastante', .75], ['mucho', 1]] as const) expect(parseVoiceValue(feeling, text)).toBe(value);
+    for (const text of ['sí', 'no', 'uno', 'tres', 'cinco', '5', 'muy bien']) expect(parseVoiceValue(feeling, text)).toBeNull();
+    const weight = all.find(q => q.kind === 'weight')!;
+    expect(parseVoiceValue(weight, 'cincuenta y cuatro coma tres kilogramos')).toBe(54.3);
+    for (const text of ['mucho', 'sí', '0', '501 kg']) expect(parseVoiceValue(weight, text)).toBeNull();
   });
   it('incluye salud opcional, interpreta horas y permite apuntes libres antes de confirmar', () => {
     const all = voiceQuestions(true), sleep = all.find(q => q.id === 'sleepHours')!;
-    expect(parseVoiceValue(sleep, 'siete horas treinta minutos', 4)).toBe(7.5);
-    expect(parseVoiceValue(sleep, 'siete horas noventa minutos', 4)).toBeNull();
+    expect(parseVoiceValue(sleep, 'siete horas treinta minutos')).toBe(7.5);
+    expect(parseVoiceValue(sleep, 'siete horas noventa minutos')).toBeNull();
     expect(voiceQuestions(false).some(q => q.kind === 'health')).toBe(false);
     expect(all.at(-2)?.kind).toBe('notes'); expect(all.at(-1)?.kind).toBe('confirm');
-    expect(parseVoiceValue(all.at(-2)!, 'Hoy me sentí mejor, salí a caminar.', 4)).toBe('Hoy me sentí mejor, salí a caminar.');
+    expect(parseVoiceValue(all.at(-2)!, 'Hoy me sentí mejor, salí a caminar.')).toBe('Hoy me sentí mejor, salí a caminar.');
   });
 });

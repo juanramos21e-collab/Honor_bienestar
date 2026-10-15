@@ -64,9 +64,12 @@ test('salud: validar, recuperar borrador, graficar y exportar sin perder métric
 test('voz breve con reloj: guarda métricas, decimales y apuntes tras confirmación explícita', async ({ page }) => {
   await page.addInitScript({ path: 'tests/fixtures/voice-browser.js' }); await enterForm(page);
   await page.getByLabel('Lectura', { exact: true }).selectOption('short');
+  await page.getByLabel('Incluir las preguntas de mi reloj').check();
   await page.getByRole('button', { name: 'Comenzar por voz' }).click();
-  for (let i = 0; i < 9; i++) await turn(page, 'uno');
-  for (let i = 0; i < 6; i++) await turn(page, 'tres');
+  for (let i = 0; i < 9; i++) await turn(page, 'no');
+  expect(await mockCall(page, 'window.__voice.utterances.at(-1)')).toContain('Responde nada, poco, medio, bastante o mucho. Pregunta 10.');
+  for (let i = 0; i < 6; i++) await turn(page, 'medio');
+  expect(await mockCall(page, 'window.__voice.utterances.at(-1)')).toContain('Di únicamente tu peso en kilogramos. Pregunta 16.');
   await turn(page, '54,3');
   for (const answer of ['ocho mil', 'cinco', '300', 'cuarenta', '75', 'sesenta', '98%', 'siete horas treinta minutos', 'dos', 'cuatro', 'uno coma cinco', 'treinta']) await turn(page, answer);
   await turn(page, 'Hoy me siento tranquilo y descansé mejor.');
@@ -86,6 +89,8 @@ test('voz completa: espera lectura y señal, responde todo, dicta apuntes y revi
   await page.addInitScript({ path: 'tests/fixtures/voice-browser.js' }); await enterForm(page);
   await page.getByLabel('Incluir las preguntas de mi reloj').uncheck();
   await page.getByRole('button', { name: 'Comenzar por voz' }).click();
+  await expect(page.locator('.voice-answer-hint')).toHaveText('Responde solo «sí» o «no».');
+  await expect(page.getByLabel('Escala de respuestas')).toHaveCount(0);
   expect(await mockCall(page, 'window.__voice.recognitionStarts')).toBe(0);
   expect(await mockCall(page, 'window.__voice.utterances[0]')).toContain('meditar');
   await mockCall(page, 'window.__voice.finishReading()');
@@ -94,15 +99,33 @@ test('voz completa: espera lectura y señal, responde todo, dicta apuntes y revi
   await expect(page.getByRole('group', { name: 'Meditar u orar' }).getByRole('button', { name: 'Sí', exact: true })).toBeDisabled();
   await mockCall(page, 'window.__voice.answer("sí")');
   for (let i = 1; i < 9; i++) await turn(page, 'no');
-  await turn(page, 'nueve'); // No se avanza ante una escala inválida.
+  expect(await mockCall(page, 'window.__voice.utterances.at(-1)')).toContain('Responde nada, poco, medio, bastante o mucho.');
+  await expect(page.locator('.voice-answer-hint')).toHaveText('Responde «nada», «poco», «medio», «bastante» o «mucho».');
+  await turn(page, 'cinco'); // Los números no sustituyen las palabras del estado.
   await expect(page.locator('.voice-counter')).toHaveText('Pregunta 10 de 18');
-  for (let i = 0; i < 6; i++) await turn(page, 'cuatro');
+  expect(await mockCall(page, 'window.__voice.utterances.at(-1)')).toContain('«nada», «poco», «medio», «bastante» o «mucho»');
+  for (const answer of ['nada', 'poco', 'medio', 'bastante', 'mucho', 'medio']) await turn(page, answer);
+  await expect(page.locator('.voice-answer-hint')).toContainText('peso en kilogramos');
+  expect(await mockCall(page, 'window.__voice.utterances.at(-1)')).toContain('Ahora, el peso. Di únicamente tu peso en kilogramos.');
+  await turn(page, 'mucho');
+  await expect(page.locator('.voice-counter')).toHaveText('Pregunta 16 de 18');
+  expect(await mockCall(page, 'window.__voice.utterances.at(-1)')).toContain('peso en kilogramos');
+  await mockCall(page, 'window.__voice.finishReading(); window.__voice.finishCue(); window.__voice.answerInterim("54")');
+  await expect(page.locator('.voice-turn')).toHaveClass(/paused/);
+  await expect(page.getByLabel('¿Cuál es tu peso hoy?')).toHaveValue('');
+  await page.getByRole('button', { name: 'Continuar por voz', exact: true }).click();
   await turn(page, 'cincuenta y cuatro coma tres');
   await expect(page.locator('.voice-card h3')).toContainText('¿Cómo te sientes hoy?');
   await mockCall(page, 'window.__voice.finishReading(); window.__voice.finishCue(); window.__voice.answer("Hoy caminé.", "Me siento con ánimo.")');
   await turn(page, 'revisar');
   await expect(page.getByLabel('Algo que quieras recordar')).toHaveValue('Hoy caminé. Me siento con ánimo.');
   await expect(page.getByLabel('¿Cuál es tu peso hoy?')).toHaveValue('54.3');
+  await page.getByRole('button', { name: 'Cómo me siento', exact: true }).click();
+  for (const [label, value] of [['Energía', '0'], ['Pensamientos que quitan paz', '25'], ['Proyectos personales', '50'], ['Proyectos universitarios', '75'], ['Salud', '100'], ['Dolor físico o emocional', '50']]) {
+    const row = page.locator('.question').filter({ has: page.getByRole('button', { name: `${label}: ${value}%`, exact: true }) });
+    await expect(row.getByLabel('Valor exacto (%)')).toHaveValue(value);
+  }
+  await page.getByRole('button', { name: 'Peso y cierre' }).click();
   expect(await mockCall(page, 'window.__voice.overlap')).toBe(false);
   expect(await mockCall(page, 'window.__voice.activeRecognition')).toBeNull();
   await page.getByRole('button', { name: 'Guardar mi día', exact: true }).click();
@@ -113,7 +136,7 @@ test('voz breve: pausa cierra micrófono, ignora señales antiguas y permite rei
   await page.addInitScript({ path: 'tests/fixtures/voice-browser.js' }); await enterForm(page);
   await page.getByLabel('Lectura', { exact: true }).selectOption('short');
   await page.getByRole('button', { name: 'Comenzar por voz' }).click();
-  expect(await mockCall(page, 'window.__voice.utterances[0]')).toBe('Pregunta 1.');
+  expect(await mockCall(page, 'window.__voice.utterances[0]')).toBe('Primera parte: tus actividades. Responde solo sí o no. Pregunta 1.');
   await mockCall(page, 'window.__voice.finishReading()');
   await page.getByRole('button', { name: 'Pausar voz' }).click();
   await mockCall(page, 'window.__voice.finishCue()');
@@ -123,11 +146,14 @@ test('voz breve: pausa cierra micrófono, ignora señales antiguas y permite rei
   await expect(page.locator('.voice-turn')).toContainText('Permite el micrófono');
   expect(await mockCall(page, 'window.__voice.activeRecognition')).toBeNull();
   await page.getByRole('button', { name: 'Continuar por voz' }).click();
-  await turn(page, 'dos');
-  await expect(page.locator('.voice-counter')).toHaveText('Pregunta 2 de 30');
+  await turn(page, 'cinco');
+  await expect(page.locator('.voice-counter')).toHaveText('Pregunta 1 de 18');
+  expect(await mockCall(page, 'window.__voice.utterances.at(-1)')).toBe('No entendí la respuesta. Responde solo «sí» o «no».');
+  await mockCall(page, 'window.__voice.finishReading(); window.__voice.finishCue(); window.__voice.answerInterim("Sí.")');
+  await expect(page.locator('.voice-counter')).toHaveText('Pregunta 2 de 18');
   expect(await mockCall(page, 'window.__voice.utterances.at(-1)')).toBe('Pregunta 2.');
   await page.getByRole('button', { name: 'Terminar voz y revisar' }).click();
   expect(await mockCall(page, 'window.__voice.activeRecognition')).toBeNull();
   expect(await mockCall(page, 'window.__voice.speechActive')).toBe(false);
-  await expect(page.getByRole('group', { name: 'Meditar u orar' })).toContainText('33.3% registrado');
+  await expect(page.getByRole('group', { name: 'Meditar u orar' }).getByRole('button', { name: 'Sí', exact: true })).toHaveAttribute('aria-pressed', 'true');
 });

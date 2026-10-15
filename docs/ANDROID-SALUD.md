@@ -4,6 +4,8 @@ La versión Android conserva la interfaz de Honor y añade acceso nativo a **Hea
 
 Esto no garantiza acceso a cualquier reloj. El reloj se sincroniza con su aplicación de origen; esa aplicación debe escribir las mediciones en Health Connect. Detectar Salud de HONOR instalada no demuestra que comparta datos. La app comprueba ambas cosas por separado y permite elegir entre los orígenes que realmente tengan mediciones. No se ha implementado una API privada ni una conexión directa a la nube de HONOR.
 
+La web ahora dirige a [HONOR Health oficial de Google Play](https://play.google.com/store/apps/details?id=com.hihonor.health). No pide instalar el APK de este proyecto como paso del registro. Instalar HONOR Health no autoriza a la web a leer sus datos; el aislamiento de Android impide esa consulta directa. El APK de este proyecto sigue disponible en el paquete para pruebas de la integración Health Connect, con los permisos descritos aquí. Una instalación desde Google Play de nuestra propia integración requeriría publicarla y completar las revisiones correspondientes; no se presenta la app oficial de HONOR como sustituto de ese puente.
+
 ## Uso en el celular
 
 1. Instala `Honor-salud-android.apk`. Es un APK de prueba firmado, no una publicación de Google Play. Android puede pedir autorización para instalar desde el navegador o gestor de archivos.
@@ -65,7 +67,7 @@ En el entorno de Codex Linux puede prepararse el toolchain con `python3 scripts/
 
 La firma de prueba se conserva en `android/.local/debug.keystore`, fuera de Git y del ZIP. No borres esa carpeta del entorno si necesitas producir actualizaciones con el mismo certificado. Al compilar en otro equipo se genera otra firma y habrá que registrar sus huellas; una APK con otra firma no actualiza la instalación anterior. Para publicar en Google Play hacen falta una firma de producción propia y las declaraciones/revisiones de datos de salud de Play. Este paquete está destinado a instalación de prueba personal.
 
-El ZIP de entrega ya contiene `dist/` compilado y el APK separado en `android/releases/`. Para actualizar Hosting y las reglas de métricas desde tu sesión Windows, abre la carpeta `Honor_bienestar` del ZIP recién extraído:
+El ZIP de actualización web contiene `dist/` compilado y no requiere instalar un APK. Las entregas que incluyen también Android dejan el APK separado en `android/releases/`. Si solo tienes la entrega web y quieres crear el APK, compila Android antes de registrar su cliente Google. Para actualizar Hosting y las reglas de métricas desde tu sesión Windows, abre la carpeta `Honor_bienestar` del ZIP recién extraído:
 
 ```cmd
 npx --yes firebase-tools@15.33.0 deploy --only hosting,firestore:rules --project honor-bienestar

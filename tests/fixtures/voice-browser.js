@@ -4,6 +4,7 @@
   mock.finishReading = () => { const speech = mock.speech; mock.speech = null; mock.speechActive = false; speech?.onend?.(); };
   mock.finishCue = () => { const tone = mock.tone; mock.tone = null; tone?.onended?.(); };
   mock.answer = (...parts) => { const r = mock.activeRecognition; if (!r) throw new Error('No está escuchando'); mock.activeRecognition = null; r.onresult?.({ results: parts.map(transcript => ({ isFinal: true, 0: { transcript } })) }); r.onend?.(); };
+  mock.answerInterim = transcript => { const r = mock.activeRecognition; if (!r) throw new Error('No está escuchando'); mock.activeRecognition = null; r.onresult?.({ results: [{ isFinal: false, 0: { transcript } }] }); r.onend?.(); };
   mock.error = error => mock.activeRecognition?.onerror?.({ error });
   window.__voice = mock;
   window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };

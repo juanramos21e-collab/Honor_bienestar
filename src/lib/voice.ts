@@ -7,9 +7,25 @@ export type VoiceQuestion = { id: string; text: string; step: number; kind: 'act
 export const FEELING_QUESTIONS: Record<string, string> = {
   energy: '¿Cuánta energía tienes?', thoughts: '¿Cuánto te pesan tus pensamientos?', personal: '¿Cómo van tus proyectos personales?', university: '¿Cómo van tus proyectos universitarios?', health: '¿Cómo te sientes de salud?', pain: '¿Cuánto dolor físico o emocional sientes?',
 };
+const feelingValues: Record<string, number> = { nada: 0, poco: .25, medio: .5, bastante: .75, mucho: 1 };
+export function voiceInstruction(question: VoiceQuestion): string {
+  if (question.kind === 'activity') return 'Responde solo «sí» o «no».';
+  if (question.kind === 'scale') return 'Responde «nada», «poco», «medio», «bastante» o «mucho».';
+  if (question.kind === 'weight') return 'Di tu peso en kilogramos. Por ejemplo: «54,3 kilos».';
+  if (question.kind === 'health') return 'Di el valor real de esta medición en la unidad indicada, o di «omitir».';
+  if (question.kind === 'notes') return 'Puedes dictar tus apuntes o decir «omitir».';
+  return 'Di «guardar» o «revisar».';
+}
+function sectionIntroduction(question: VoiceQuestion): string {
+  if (question.kind === 'activity') return 'Primera parte: tus actividades. Responde solo sí o no.';
+  if (question.kind === 'scale') return 'Ahora, cómo te sientes. Responde nada, poco, medio, bastante o mucho.';
+  if (question.kind === 'weight') return 'Ahora, el peso. Di únicamente tu peso en kilogramos.';
+  if (question.kind === 'health') return 'Ahora, los datos de tu reloj. Responde con el valor real en la unidad indicada, o di omitir.';
+  return '';
+}
 export function voiceQuestions(includeHealth: boolean): VoiceQuestion[] {
   return [
-    ...ACTIVITIES.map(a => ({ id: a.id, text: `¿Hoy pudiste ${a.label.toLowerCase()}? Responde sí o no.`, step: 0, kind: 'activity' as const })),
+    ...ACTIVITIES.map(a => ({ id: a.id, text: `¿Hoy pudiste ${a.label.toLowerCase()}?`, step: 0, kind: 'activity' as const })),
     ...VARIABLES.filter(v => v.id !== 'productivity').map(v => ({ id: v.id, text: FEELING_QUESTIONS[v.id], step: 1, kind: 'scale' as const })),
     { id: 'weight', text: '¿Cuánto pesas hoy, en kilogramos? También puedes decir omitir.', step: 2, kind: 'weight', min: .01, max: 500 },
     ...(includeHealth ? HEALTH_METRICS.map(m => ({ id: m.id, text: `¿Cuál es tu valor de ${m.label.toLowerCase()}, en ${m.unit === 'h' ? 'horas' : m.unit === 'lpm' ? 'latidos por minuto' : m.unit === '/100' ? 'una escala de cero a cien' : m.unit}? Puedes decir omitir.`, step: 2, kind: 'health' as const, min: m.min, max: m.max, integer: m.integer })) : []),
@@ -43,15 +59,15 @@ export function spokenNumber(input: string): number | null {
   const fraction = decimal.every(Boolean) ? decimal.join('') : integerWords(parts[1]);
   return fraction !== null ? Number(`${whole}.${fraction}`) : null;
 }
-export function parseVoiceValue(question: VoiceQuestion, input: string, scale: 4 | 5): number | string | null {
+export function parseVoiceValue(question: VoiceQuestion, input: string): number | string | null {
   const text = plain(input);
   if (question.kind === 'notes') return input.trim() ? input.trim().slice(0, 2000) : null;
   if (question.kind === 'activity') {
-    if (['si', 'hecho', 'lo hice'].includes(text)) return 1;
-    if (['no', 'no lo hice'].includes(text)) return 0;
-    const choice = spokenNumber(text); return choice !== null && Number.isInteger(choice) && choice >= 1 && choice <= scale ? (choice - 1) / (scale - 1) : null;
+    if (['si', 'si lo hice', 'si pude', 'hecho', 'lo hice'].includes(text)) return 1;
+    if (['no', 'no lo hice', 'no pude'].includes(text)) return 0;
+    return null;
   }
-  if (question.kind === 'scale') { const choice = spokenNumber(text); return choice !== null && Number.isInteger(choice) && choice >= 1 && choice <= scale ? (choice - 1) / (scale - 1) : null; }
+  if (question.kind === 'scale') return Object.hasOwn(feelingValues, text) ? feelingValues[text] : null;
   if (question.kind === 'confirm') return text === 'guardar' ? 'save' : text === 'revisar' ? 'review' : null;
   let number: number | null;
   const hours = plain(input).match(/^(.+) horas?(?: y)? (.+) minutos?$/);
@@ -71,7 +87,8 @@ export class VoiceSession {
   private recognition?: Recognition;
   private timer?: ReturnType<typeof setTimeout>;
   private audio?: AudioContext;
-  constructor(readonly questions: VoiceQuestion[], readonly mode: 'full' | 'short', readonly scale: 4 | 5, readonly callbacks: { state: (state: VoiceState) => void; answer: (question: VoiceQuestion, value: number | string) => string | void; save: () => void }) {}
+  private announcedKind?: VoiceQuestion['kind'];
+  constructor(readonly questions: VoiceQuestion[], readonly mode: 'full' | 'short', readonly callbacks: { state: (state: VoiceState) => void; answer: (question: VoiceQuestion, value: number | string) => string | void; save: () => void }) {}
   private emit(patch: Partial<VoiceState>) { this.state = { ...this.state, ...patch }; this.callbacks.state(this.state); }
   private stopIO() {
     this.generation++; clearTimeout(this.timer);
@@ -87,8 +104,9 @@ export class VoiceSession {
     if (index < 0 || index >= this.questions.length) return;
     const generation = this.generation, question = this.questions[index];
     this.emit({ index, phase: 'speaking', message: 'Escucha. El micrófono está cerrado.', transcript: '' });
-    const scaleText = this.scale === 4 ? 'Uno nada, dos poco, tres bastante, cuatro mucho.' : 'Uno nada, dos poco, tres medio, cuatro bastante, cinco mucho.';
-    const text = retry ?? (this.mode === 'short' && !['notes', 'confirm'].includes(question.kind) ? `Pregunta ${index + 1}.` : question.text + (question.kind === 'scale' ? ` ${scaleText}` : question.kind === 'activity' ? ` También puedes usar la escala: ${scaleText}` : ''));
+    const introduction = question.kind !== this.announcedKind ? sectionIntroduction(question) : '';
+    const prompt = this.mode === 'short' && !['notes', 'confirm'].includes(question.kind) ? `Pregunta ${index + 1}.` : question.text;
+    const text = retry ?? [introduction, prompt].filter(Boolean).join(' ');
     if (isNativeAndroid()) {
       this.timer = setTimeout(() => { if (generation === this.generation) this.pause('La lectura se interrumpió. Pulsa continuar para reintentar.'); }, 60000);
       void deviceTools.stop().then(() => { if (generation === this.generation) return deviceTools.speak({ text }); }).then(() => { if (generation === this.generation) this.cue(generation); }).catch((error: Error) => { if (generation === this.generation) this.pause(error.message || 'No se pudo leer la pregunta.'); });
@@ -101,6 +119,7 @@ export class VoiceSession {
     window.speechSynthesis.speak(utterance);
   }
   private cue(generation: number) {
+    this.announcedKind = this.questions[this.state.index].kind;
     clearTimeout(this.timer); this.emit({ phase: 'cue', message: 'Tu turno…' });
     if (isNativeAndroid()) { void deviceTools.cue().then(() => { if (generation === this.generation) this.listen(generation); }).catch(() => { if (generation === this.generation) this.pause('La señal se interrumpió. Puedes continuar.'); }); return; }
     // El micrófono se abre después de terminar la voz Y la señal.
@@ -120,18 +139,23 @@ export class VoiceSession {
     const w = window as SpeechWindow, Constructor = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!Constructor) { this.pause('Este navegador no admite respuestas por voz. Usa Chrome en Android o Windows.'); return; }
     const recognition = new Constructor(); this.recognition = recognition; recognition.lang = 'es-PE'; recognition.interimResults = true; recognition.continuous = false;
-    let finalText = '';
+    let finalText = '', interimText = '';
     recognition.onresult = event => {
       if (generation !== this.generation) return;
       finalText = Array.from(event.results).filter(r => r.isFinal).map(r => r[0].transcript).join(' ').trim();
-      this.emit({ transcript: Array.from(event.results).map(r => r[0].transcript).join(' ') });
+      interimText = Array.from(event.results).map(r => r[0].transcript).join(' ').trim();
+      this.emit({ transcript: interimText });
     };
     recognition.onerror = event => { if (generation === this.generation) this.pause(event.error === 'not-allowed' || event.error === 'service-not-allowed' ? 'Permite el micrófono en el navegador para usar la voz.' : event.error === 'no-speech' ? 'No escuché una respuesta. Pulsa continuar para intentarlo de nuevo.' : 'No se pudo escuchar. Comprueba el micrófono y la conexión, y pulsa continuar.'); };
     recognition.onend = () => {
       if (generation !== this.generation) return;
       this.recognition = undefined; clearTimeout(this.timer);
-      if (!finalText) { this.pause('No escuché una respuesta. Pulsa continuar o responde en pantalla.'); return; }
-      this.consume(finalText);
+      const question = this.questions[this.state.index];
+      // Algunas sesiones terminan tras una respuesta muy corta sin emitir un resultado final.
+      // Solo se recuperan opciones completas de los dos conjuntos cerrados, nunca números o apuntes parciales.
+      const response = finalText || (['activity', 'scale'].includes(question.kind) && parseVoiceValue(question, interimText) !== null ? interimText : '');
+      if (!response) { this.pause('No escuché una respuesta. Pulsa continuar o responde en pantalla.'); return; }
+      this.consume(response);
     };
     this.emit({ phase: 'listening', message: 'Habla ahora · micrófono abierto' });
     try { recognition.start(); this.timer = setTimeout(() => { if (generation === this.generation) this.pause('Se agotó el turno. Tu respuesta anterior se conserva; puedes continuar.'); }, this.questions[this.state.index].kind === 'notes' ? 90000 : 25000); }
@@ -143,8 +167,8 @@ export class VoiceSession {
     if (['repetir', 'repite'].includes(command)) { this.run(); return; }
     if (['anterior', 'volver'].includes(command)) { this.run(Math.max(0, this.state.index - 1)); return; }
     if (['omitir', 'saltar', 'mantener'].includes(command) && question.kind !== 'confirm') { this.run(this.state.index + 1); return; }
-    const value = parseVoiceValue(question, text, this.scale);
-    if (value === null) { this.run(this.state.index, question.kind === 'activity' ? `No entendí la respuesta. Di sí, no, uno para no, o ${this.scale} para sí.` : question.kind === 'scale' ? `Di un número del uno al ${this.scale}.` : question.kind === 'confirm' ? 'Di guardar o revisar.' : `No entendí el valor. Di un número entre ${question.min} y ${question.max}, o di omitir.`); return; }
+    const value = parseVoiceValue(question, text);
+    if (value === null) { this.run(this.state.index, `No entendí la respuesta. ${voiceInstruction(question)}`); return; }
     if (question.kind === 'confirm') { this.stopIO(); this.emit({ phase: 'complete', message: value === 'save' ? 'Guardando tus respuestas…' : 'Respuestas listas para revisar.' }); if (value === 'save') this.callbacks.save(); return; }
     const error = this.callbacks.answer(question, value);
     if (error) { this.run(this.state.index, error); return; }
