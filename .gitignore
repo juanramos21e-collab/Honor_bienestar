@@ -10,3 +10,16 @@ test-results/
 *.xlsx
 *.xls
 *.zip
+android/.gradle/
+android/.local/
+android/local.properties
+android/**/build/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/capacitor-cordova-android-plugins/
+android/android-signing.json
+android/firebase-registration.json
+*-debug.log
+*.keystore
+*.jks

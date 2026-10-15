@@ -1,6 +1,6 @@
 # Salud del reloj y respuestas por voz
 
-En el registro del día, abre **Peso y cierre → Datos de mi reloj**. Copia los valores que veas en Salud de HONOR y deja vacías las mediciones que tu modelo no tenga. Esta versión permite introducir esos datos manualmente; no está conectada a la cuenta de Salud de HONOR y no descarga lecturas del reloj.
+En el registro del día, abre **Peso y cierre → Datos de mi reloj** para introducirlos manualmente. La versión Android también añade **Ajustes → Datos de salud** para consultar Health Connect con autorización. Consulta [Android y datos de salud](ANDROID-SALUD.md) para instalar, conectar y comprobar si tu aplicación de origen comparte mediciones. No hay una conexión directa a la nube de HONOR.
 
 | Dato | Unidad |
 | --- | --- |

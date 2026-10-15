@@ -1,5 +1,7 @@
 import { ACTIVITIES, VARIABLES, type ActivityId, type VariableId } from './model';
 import { HEALTH_METRICS, type HealthId } from './health';
+import { isNativeAndroid } from './nativeHealth';
+import { deviceTools } from './deviceTools';
 
 export type VoiceQuestion = { id: string; text: string; step: number; kind: 'activity' | 'scale' | 'weight' | 'health' | 'notes' | 'confirm'; min?: number; max?: number; integer?: boolean };
 export const FEELING_QUESTIONS: Record<string, string> = {
@@ -62,7 +64,7 @@ export type VoiceAnswer = { kind: 'activity'; id: ActivityId; value: number } | 
 type Recognition = { lang: string; continuous: boolean; interimResults: boolean; onresult: ((event: { results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }> }) => void) | null; onend: (() => void) | null; onerror: ((event: { error: string }) => void) | null; start: () => void; abort: () => void };
 type SpeechWindow = Window & { SpeechRecognition?: new () => Recognition; webkitSpeechRecognition?: new () => Recognition };
 export type VoiceState = { phase: 'idle' | 'speaking' | 'cue' | 'listening' | 'paused' | 'complete'; index: number; message: string; transcript: string };
-export function voiceAvailable() { const w = window as SpeechWindow; return !!(w.SpeechRecognition || w.webkitSpeechRecognition) && !!window.speechSynthesis; }
+export function voiceAvailable() { const w = window as SpeechWindow; return isNativeAndroid() || (!!(w.SpeechRecognition || w.webkitSpeechRecognition) && !!window.speechSynthesis); }
 export class VoiceSession {
   state: VoiceState = { phase: 'idle', index: 0, message: '', transcript: '' };
   private generation = 0;
@@ -75,6 +77,7 @@ export class VoiceSession {
     this.generation++; clearTimeout(this.timer);
     if (this.recognition) { this.recognition.onend = null; this.recognition.onresult = null; this.recognition.onerror = null; this.recognition.abort(); this.recognition = undefined; }
     window.speechSynthesis?.cancel();
+    if (isNativeAndroid()) void deviceTools.stop().catch(() => {});
   }
   unlockAudio() { try { this.audio ??= new AudioContext(); void this.audio.resume().catch(() => {}); } catch { /* La señal visual también marca el turno. */ } }
   dispose() { this.stopIO(); void this.audio?.close().catch(() => {}); }
@@ -86,6 +89,11 @@ export class VoiceSession {
     this.emit({ index, phase: 'speaking', message: 'Escucha. El micrófono está cerrado.', transcript: '' });
     const scaleText = this.scale === 4 ? 'Uno nada, dos poco, tres bastante, cuatro mucho.' : 'Uno nada, dos poco, tres medio, cuatro bastante, cinco mucho.';
     const text = retry ?? (this.mode === 'short' && !['notes', 'confirm'].includes(question.kind) ? `Pregunta ${index + 1}.` : question.text + (question.kind === 'scale' ? ` ${scaleText}` : question.kind === 'activity' ? ` También puedes usar la escala: ${scaleText}` : ''));
+    if (isNativeAndroid()) {
+      this.timer = setTimeout(() => { if (generation === this.generation) this.pause('La lectura se interrumpió. Pulsa continuar para reintentar.'); }, 60000);
+      void deviceTools.stop().then(() => { if (generation === this.generation) return deviceTools.speak({ text }); }).then(() => { if (generation === this.generation) this.cue(generation); }).catch((error: Error) => { if (generation === this.generation) this.pause(error.message || 'No se pudo leer la pregunta.'); });
+      return;
+    }
     const utterance = new SpeechSynthesisUtterance(text); utterance.lang = 'es-PE'; utterance.rate = 1;
     utterance.onend = () => { if (generation === this.generation) this.cue(generation); };
     utterance.onerror = () => { if (generation === this.generation) this.pause('No se pudo leer la pregunta. Intenta continuar o usa el formulario.'); };
@@ -94,6 +102,7 @@ export class VoiceSession {
   }
   private cue(generation: number) {
     clearTimeout(this.timer); this.emit({ phase: 'cue', message: 'Tu turno…' });
+    if (isNativeAndroid()) { void deviceTools.cue().then(() => { if (generation === this.generation) this.listen(generation); }).catch(() => { if (generation === this.generation) this.pause('La señal se interrumpió. Puedes continuar.'); }); return; }
     // El micrófono se abre después de terminar la voz Y la señal.
     if (this.audio?.state === 'running') {
       const tone = this.audio.createOscillator(), gain = this.audio.createGain(); tone.frequency.value = 660; gain.gain.value = .08; tone.connect(gain); gain.connect(this.audio.destination);
@@ -102,6 +111,12 @@ export class VoiceSession {
     } else this.timer = setTimeout(() => { if (generation === this.generation) this.listen(generation); }, 180);
   }
   private listen(generation: number) {
+    if (isNativeAndroid()) {
+      this.emit({ phase: 'listening', message: 'Habla ahora · micrófono abierto' });
+      this.timer = setTimeout(() => { if (generation === this.generation) this.pause('Se agotó el turno. Puedes continuar o responder en pantalla.'); }, this.questions[this.state.index].kind === 'notes' ? 90000 : 25000);
+      void deviceTools.listen().then(result => { if (generation === this.generation) { clearTimeout(this.timer); this.consume(result.transcript); } }).catch((error: Error) => { if (generation === this.generation) this.pause(error.message || 'No se pudo escuchar la respuesta.'); });
+      return;
+    }
     const w = window as SpeechWindow, Constructor = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!Constructor) { this.pause('Este navegador no admite respuestas por voz. Usa Chrome en Android o Windows.'); return; }
     const recognition = new Constructor(); this.recognition = recognition; recognition.lang = 'es-PE'; recognition.interimResults = true; recognition.continuous = false;

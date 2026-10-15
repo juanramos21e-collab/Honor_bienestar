@@ -9,6 +9,7 @@ import { useInspiration } from './lib/useInspiration';
 import DayForm from './components/DayForm';
 import Settings from './components/Settings';
 import MergeDialog from './components/MergeDialog';
+import { isNativeAndroid } from './lib/nativeHealth';
 const Progress = lazy(() => import('./components/Progress'));
 
 type Page = 'inicio' | 'progreso' | 'ajustes' | 'registro';
@@ -36,6 +37,7 @@ export default function App() {
   useEffect(() => { const timer = setInterval(() => setToday(localDate()), 30000); const listener = () => setToday(localDate()); window.addEventListener('focus', listener); return () => { clearInterval(timer); window.removeEventListener('focus', listener); }; }, []);
   useEffect(() => { const listener = (event: Event) => { event.preventDefault(); setInstallEvent(event as InstallEvent); }; window.addEventListener('beforeinstallprompt', listener); return () => window.removeEventListener('beforeinstallprompt', listener); }, []);
   useEffect(() => {
+    if (isNativeAndroid()) return;
     updateSW.current = registerSW({ onNeedRefresh() { setUpdateAvailable(true); }, onOfflineReady() { notify('Honor ya puede abrirse sin conexión en este dispositivo.'); } });
     return () => clearTimeout(toastTimer.current);
   }, [notify]);
@@ -83,7 +85,7 @@ export default function App() {
       </div>}
       {page === 'registro' && <DayForm key={`${data.scope}|${date}`} scope={data.scope} initial={data.days.find(e => e.date === date)} date={date} notify={notify} onBack={() => navigate('inicio')} onSave={async entry => { await data.saveEntries([entry]); }} />}
       {page === 'progreso' && <Suspense fallback={<p className="loading">Preparando tus gráficas…</p>}><Progress days={data.days} onEdit={edit} /></Suspense>}
-      {page === 'ajustes' && <Settings key={data.scope} profile={data.profile} days={data.days} user={data.user} status={data.status} onProfile={data.saveProfile} onImport={prepareImport} onGoogle={() => { void google(); }} onLogout={() => { void logout().then(() => { navigate('inicio'); notify('Sesión cerrada. Volviste al historial sin cuenta de este dispositivo.'); }).catch(error => notify(cloudError(error))); }} onSync={() => { void data.sync(); }} onGuestImport={() => { void importGuest(); }} onInstall={() => { void install(); }} notify={notify} />}
+      {page === 'ajustes' && <Settings key={data.scope} scope={data.scope} onHealthSave={data.saveEntries} onProgress={() => navigate('progreso')} profile={data.profile} days={data.days} user={data.user} status={data.status} onProfile={data.saveProfile} onImport={prepareImport} onGoogle={() => { void google(); }} onLogout={() => { void logout().then(() => { navigate('inicio'); notify('Sesión cerrada. Volviste al historial sin cuenta de este dispositivo.'); }).catch(error => notify(cloudError(error))); }} onSync={() => { void data.sync(); }} onGuestImport={() => { void importGuest(); }} onInstall={() => { void install(); }} notify={notify} />}
       <footer className="app-footer"><Leaf size={13} /><span>Hecho para acompañarte, un día a la vez.</span></footer>
     </main>
     <nav className="bottom-nav" aria-label="Navegación móvil">{([{ id: 'inicio', label: 'Inicio', icon: Home }, { id: 'progreso', label: 'Progreso', icon: ChartNoAxesCombined }, { id: 'ajustes', label: 'Ajustes', icon: Settings2 }] as const).map(item => <button key={item.id} className={page === item.id ? 'active' : ''} onClick={() => navigate(item.id)}><item.icon size={20} />{item.label}</button>)}</nav>

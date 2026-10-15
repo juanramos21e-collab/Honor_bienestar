@@ -1,6 +1,8 @@
 import { ACTIVITIES, VARIABLES, answersFor, emptyEntry, hasContent, localDate, moodScore, normalizeEntry, validDate, type DayEntry } from './model';
 import type { Cell, CellValue, Row } from 'exceljs';
 import { HEALTH_METRICS } from './health';
+import { isNativeAndroid } from './nativeHealth';
+import { deviceTools } from './deviceTools';
 
 const clean = (s: unknown) => String(s ?? '').trim().replace(/\s+/g, ' ');
 function readCell(cell: Cell): unknown {
@@ -108,13 +110,18 @@ export async function importExcel(buffer: ArrayBuffer): Promise<DayEntry[]> {
   }
   return entries;
 }
-function download(blob: Blob, filename: string) {
+async function download(blob: Blob, filename: string) {
+  if (isNativeAndroid()) {
+    const url = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(new Error('No se pudo preparar el archivo.')); reader.readAsDataURL(blob); });
+    await deviceTools.saveFile({ filename, mime: blob.type, base64: url.slice(url.indexOf(',') + 1) });
+    return;
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
-export function exportBackup(entries: DayEntry[]) {
-  download(new Blob([JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), entries }, null, 2)], { type: 'application/json' }), `honor-respaldo-${localDate()}.json`);
+export async function exportBackup(entries: DayEntry[]) {
+  await download(new Blob([JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), entries }, null, 2)], { type: 'application/json' }), `honor-respaldo-${localDate()}.json`);
 }
 export async function exportExcel(entries: DayEntry[]) {
   const { Workbook } = await import('exceljs');
@@ -130,7 +137,7 @@ export async function exportExcel(entries: DayEntry[]) {
   activities.addRow(['Fecha', ...ACTIVITIES.map(a => a.excel), 'Productividad']);
   for (const entry of entries) activities.addRow([entry.date, ...ACTIVITIES.map(a => entry.activities[a.id]), answersFor(entry).productivity]);
   const buffer = await book.xlsx.writeBuffer();
-  download(new Blob([buffer as BlobPart], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `honor-registros-${localDate()}.xlsx`);
+  await download(new Blob([buffer as BlobPart], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `honor-registros-${localDate()}.xlsx`);
 }
 export async function prepareImage(file: File): Promise<string> {
   const gif = file.type === 'image/gif' || /\.gif$/i.test(file.name);

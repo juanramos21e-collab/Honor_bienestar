@@ -11,6 +11,7 @@ Web instalable en Android (PWA), con la misma información y fórmula de la apli
 - Menú principal: «¿Qué hiciste hoy?» y «Ver mi progreso».
 - Nueve actividades con los pesos de productividad del Excel; seis preguntas de estado, peso opcional y notas.
 - Doce métricas opcionales de Salud de HONOR con entrada manual, gráficas de evolución y comparación con el estado diario. Se conservan en borradores, respaldos, Excel y sincronización; no cambian la fórmula de estado.
+- Versión Android con Health Connect: comprueba disponibilidad, detecta apps conocidas, solicita lectura, permite elegir una fuente con datos y actualizar el historial tras revisión. Compatible con Android 9+ que disponga del servicio; la lectura depende de que la app del reloj comparta sus mediciones. Consulta [Android y salud](docs/ANDROID-SALUD.md).
 - Cuestionario por voz con lectura completa o anuncio breve, escala de cuatro o cinco opciones, señal antes de abrir el micrófono, dictado de apuntes y confirmación antes de guardar. Consulta [Salud y voz](docs/SALUD-Y-VOZ.md).
 - Un registro por fecha. Las respuestas guardadas reaparecen al editar; los cambios actualizan ese día. El borrador también se guarda mientras respondes.
 - Gráficas de estado, peso y variables con agrupación por día, semana, mes y año, filtros y detalle diario con gráfica de torta. Estado y peso usan una escala de fechas y unen las mediciones disponibles sin convertir los días vacíos en ceros.
@@ -47,11 +48,13 @@ Para el sandbox de Codex, añade `npm_config_cache=/tmp/honor-npm` antes del com
 npm test
 ```
 
-Sin configuración Firebase, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e` (nueve pruebas). Si Firebase ya está configurado, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e -- --grep-invert 'Google pendiente'` (ocho pruebas). La prueba «Google pendiente» corresponde exclusivamente a una compilación sin configuración Firebase.
+Sin configuración Firebase, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e`. Si Firebase ya está configurado, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e -- --grep-invert 'Google pendiente'`. La prueba «Google pendiente» corresponde exclusivamente a una compilación sin configuración Firebase.
 
 Las pruebas unitarias cubren la fórmula, los pesos, vacíos frente a ceros, períodos, validación de salud, conflictos, importación original y números hablados en español. Chromium cubre registro, edición, borradores, recarga sin conexión, importación, respaldo, Excel con salud y las imágenes. Las pruebas de voz usan APIs simuladas para controlar el orden de lectura, señal y escucha, los permisos, la pausa y los dos recorridos completos; falta comprobar audio y micrófono reales en el dispositivo. Si Chromium no está instalado, usa `npx playwright install chromium` y omite `CHROMIUM_PATH`.
 
 Google y Firestore deben verificarse con un proyecto real siguiendo [la guía de Google y publicación](docs/GOOGLE-Y-PUBLICACION.md). Las pruebas locales no establecen que la sincronización con una cuenta real haya sido validada.
+
+Para compilar también el APK, instala JDK 21 y Android SDK 36 y ejecuta `npm run build:android`. El resultado incluye la web y el APK descargable en `dist`; ejecuta este comando al publicar el paquete completo. `npm run build` prepara solo la web y elimina el APK anterior de `dist`. El registro Google del APK se completa con `npm run android:google` desde una sesión Firebase del propietario. La firma de prueba y los metadatos generados no se suben a Git. Véase la guía Android para migrar el historial local, permisos, firma y limitaciones.
 
 ## Compatibilidad con el Excel
 

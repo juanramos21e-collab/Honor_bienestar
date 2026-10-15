@@ -1,5 +1,6 @@
 import { normalizeEntry, type DayEntry } from './model';
 import type { User } from 'firebase/auth';
+import { healthBridge, isNativeAndroid } from './nativeHealth';
 export type { User };
 
 const config = {
@@ -24,11 +25,20 @@ function client() {
 export async function observeUser(callback: (user: User | null) => void) {
   const c = await client();
   // El resultado del retorno de Google se resuelve antes de leer la sesión.
-  await c.authModule.getRedirectResult(c.auth);
+  if (!isNativeAndroid()) await c.authModule.getRedirectResult(c.auth);
   return c.authModule.onAuthStateChanged(c.auth, callback);
 }
 export async function login() {
   const c = await client();
+  if (isNativeAndroid()) {
+    const clientId = import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID;
+    if (!clientId) throw new Error('Falta configurar Google para esta versión Android. Puedes continuar en este dispositivo.');
+    try {
+      const { idToken } = await healthBridge.googleSignIn({ clientId });
+      await c.authModule.signInWithCredential(c.auth, c.authModule.GoogleAuthProvider.credential(idToken));
+    } catch (error) { if ((error as { code?: string }).code !== 'CANCELLED') throw error; }
+    return;
+  }
   const provider = new c.authModule.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   try { await c.authModule.signInWithPopup(c.auth, provider); }
@@ -59,6 +69,7 @@ export async function uploadDay(uid: string, entry: DayEntry, expectedVersion: s
 }
 export function cloudError(error: unknown): string {
   const code = (error as { code?: string })?.code ?? '';
+  if (code === 'GOOGLE_SIGN_IN_FAILED') return 'Para conectar Google en Android, registra esta versión y su certificado en Firebase. El paquete incluye el paso android:google; puedes continuar en este dispositivo.';
   if (code.includes('unauthorized-domain')) return 'Este dominio necesita autorización en Firebase para iniciar sesión con Google.';
   if (code.includes('operation-not-allowed')) return 'Falta habilitar el proveedor Google en Firebase Authentication.';
   if (code.includes('permission-denied')) return 'La nube rechazó el acceso. Revisa las reglas de Firestore para esta cuenta.';
