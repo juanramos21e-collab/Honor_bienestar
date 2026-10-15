@@ -28,7 +28,7 @@ async function link(page: Page) {
   await dialog.getByRole('button', { name: 'Vincular esta carpeta' }).click();
   await expect(dialog).not.toBeVisible();
 }
-test('la copia del teléfono no incorpora días y se recuerda la carpeta sin guardar el token', async ({ page }) => {
+test('excluye la copia del teléfono y retoma Drive al recargar sin pedir Google ni guardar tokens en el historial', async ({ page }) => {
   const SQL = await testSql(), db = testDatabase(SQL);
   addInterval(db, 'steps_record_table', 'count', 5000, { app: 10 });
   const zip = await archive(db); db.close();
@@ -42,9 +42,14 @@ test('la copia del teléfono no incorpora días y se recuerda la carpeta sin gua
   });
   expect(JSON.stringify(settings)).not.toContain('browser-test-token');
   expect(JSON.stringify(settings)).toContain('health-folder');
-  await page.reload(); await expect(page.locator('.drive-health')).toContainText('Google necesita renovar el acceso');
+  await page.reload(); await expect(page.locator('.drive-health')).toContainText('todavía no contiene mediciones de HONOR Health');
   expect(await page.evaluate(() => (window as unknown as { __drive: { authCalls: number } }).__drive.authCalls)).toBe(0);
-  await page.getByRole('button', { name: 'Renovar acceso de Google' }).click();
+  await page.getByRole('button', { name: 'Actualizar datos de salud' }).click();
+  await expect(page.locator('.drive-health')).toContainText('todavía no contiene mediciones de HONOR Health');
+  await page.getByRole('button', { name: 'Cambiar carpeta' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { __drive: { authCalls: number } }).__drive.authCalls)).toBe(0);
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancelar', exact: true }).click();
   await expect(page.getByRole('dialog')).not.toBeVisible();
   await expect(page.locator('.drive-health')).toContainText('todavía no contiene mediciones de HONOR Health');
   expect(await page.evaluate(() => (window as unknown as { __drive: { mediaCalls: number } }).__drive.mediaCalls)).toBe(0);
@@ -96,7 +101,49 @@ test('un permiso vencido detiene la consulta y desvincular conserva el historial
   await page.evaluate(() => { (window as unknown as { __drive: { unauthorized: boolean } }).__drive.unauthorized = true; });
   await page.getByRole('button', { name: 'Actualizar datos de salud' }).click();
   await expect(page.locator('.drive-health')).toContainText('Google necesita renovar el acceso');
+  // No insiste en Google automáticamente; renovar usa la carpeta recordada.
+  await page.reload();
+  await expect(page.locator('.drive-health')).toContainText('Google necesita renovar el acceso');
+  expect(await page.evaluate(() => (window as unknown as { __drive: { authCalls: number } }).__drive.authCalls)).toBe(0);
+  await page.getByRole('button', { name: 'Actualizar datos de salud' }).click();
+  await expect(page.locator('.drive-health')).toContainText('1 días con mediciones');
+  expect(await page.evaluate(() => (window as unknown as { __drive: { authCalls: number } }).__drive.authCalls)).toBe(1);
+  await expect(page.getByRole('dialog')).not.toBeVisible();
   await page.getByRole('button', { name: 'Desvincular carpeta' }).click();
   await expect(page.getByRole('button', { name: 'Conectar Drive', exact: true })).toBeVisible();
   await expect(page.getByText('1 días registrados en este historial.')).toBeVisible();
+  expect(await page.evaluate(() => sessionStorage.getItem('honor-google-access-v1'))).toBeNull();
+});
+
+test('reutiliza el permiso con la misma cuenta Google y lo descarta al salir o cambiar de cuenta', async ({ page }) => {
+  const SQL = await testSql(), db = testDatabase(SQL); addInterval(db, 'steps_record_table', 'count', 20);
+  const zip = await archive(db); db.close();
+  await setup(page, zip); await link(page);
+  await expect(page.locator('.drive-health')).toContainText('1 días con mediciones');
+  // Una carpeta configurada anteriormente para esta cuenta; solo datos ficticios.
+  await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>(resolve => { const r = indexedDB.open('honor-bienestar-v1'); r.onsuccess = () => resolve(r.result); });
+    await new Promise<void>(resolve => {
+      const tx = db.transaction('settings', 'readwrite');
+      tx.objectStore('settings').put({ folder: { id: 'health-folder', name: 'Mi salud' }, email: 'drive@example.test', origin: 'com.hihonor.health' }, 'honor-drive-v1|user:owner');
+      tx.oncomplete = () => resolve();
+    });
+  });
+  await page.getByRole('button', { name: /Continuar con Google/ }).click();
+  await expect(page.getByRole('heading', { name: 'Conectado con Google' })).toBeVisible();
+  await expect(page.locator('.drive-health')).toContainText('1 días actualizados');
+  expect(await page.evaluate(() => (window as unknown as { __drive: { authCalls: number } }).__drive.authCalls)).toBe(1);
+  await page.getByRole('button', { name: 'Actualizar datos de salud' }).click();
+  await expect(page.locator('.drive-health')).toContainText('0 días actualizados');
+  expect(await page.evaluate(() => (window as unknown as { __drive: { authCalls: number } }).__drive.authCalls)).toBe(1);
+  await page.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
+  await page.getByRole('button', { name: 'Ajustes', exact: true }).click();
+  await expect(page.locator('.drive-health')).toContainText('Google necesita renovar el acceso');
+  expect(await page.evaluate(() => sessionStorage.getItem('honor-google-access-v1'))).toBeNull();
+  await page.evaluate(() => { (window as unknown as { __drive: { loginUid: string } }).__drive.loginUid = 'other'; });
+  await page.getByRole('button', { name: /Continuar con Google/ }).click();
+  await expect(page.getByRole('heading', { name: 'Conectado con Google' })).toBeVisible();
+  await expect(page.locator('.drive-health').getByRole('button', { name: 'Conectar Drive', exact: true })).toBeVisible();
+  await expect(page.getByText('0 días registrados en este historial.')).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { __drive: { authCalls: number } }).__drive.authCalls)).toBe(1);
 });

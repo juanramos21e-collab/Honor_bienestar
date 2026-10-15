@@ -3,10 +3,9 @@ import { expect, test, type Page } from '@playwright/test';
 async function start(page: Page) { await page.goto('/'); await page.getByRole('button', { name: 'Usar en este dispositivo' }).click(); await page.getByRole('button', { name: 'Ajustes', exact: true }).click(); }
 const card = (page: Page) => page.locator('.health-connection');
 
-test('navegador: muestra la guía, la fuente exclusiva HONOR y el acceso autorizado a Drive', async ({ page }) => {
+test('navegador: muestra la guía y el acceso autorizado a Drive', async ({ page }) => {
   await start(page);
   await expect(card(page).getByRole('heading', { name: 'Datos de salud', exact: true })).toBeVisible();
-  await expect(card(page)).toContainText('Los registros del teléfono y de otras aplicaciones quedan fuera');
   await expect(card(page).getByRole('link', { name: 'HONOR Health en Google Play' })).toHaveAttribute('href', 'https://play.google.com/store/apps/details?id=com.hihonor.health');
   await expect(card(page).getByRole('link', { name: 'Descargar versión Android' })).toHaveCount(0);
   await expect(card(page).getByRole('button', { name: 'Actualizar datos', exact: true })).toHaveCount(0);

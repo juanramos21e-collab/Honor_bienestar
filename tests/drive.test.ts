@@ -31,6 +31,8 @@ describe('Lectura limitada a la carpeta elegida de Drive', () => {
   it('no transforma acceso caducado ni API deshabilitada en una lectura exitosa', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 401 })));
     await expect(driveFolders('root', 'token')).rejects.toBeInstanceOf(DriveAccessExpired);
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ error: { details: [{ reason: 'ACCESS_TOKEN_SCOPE_INSUFFICIENT' }] } }, { status: 403 })));
+    await expect(driveFolders('root', 'token')).rejects.toBeInstanceOf(DriveAccessExpired);
     vi.stubGlobal('fetch', vi.fn(async () => Response.json({ error: { errors: [{ reason: 'accessNotConfigured' }] } }, { status: 403 })));
     await expect(driveFolders('root', 'token')).rejects.toThrow('habilitar Google Drive API');
     await expect(driveFolders("x' or trashed=false", 'token')).rejects.toThrow('no es válida');

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { authorizeDrive, type DriveAuthorization, type User } from './cloud';
+import { authorizeDrive, forgetDriveAuthorization, restoreDriveAuthorization, type DriveAuthorization, type User } from './cloud';
 import { downloadHealthZip, DriveAccessExpired, driveFileVersion, driveFolders, latestHealthZip, type DriveFolder } from './drive';
 import { parseHealthArchive } from './healthArchive';
 import { readSetting, saveSetting } from './storage';
@@ -18,6 +18,7 @@ export function useDriveHealth({ scope, user, ready, onSave }: { scope: string; 
   const [path, setPath] = useState<DriveFolder[]>([{ id: 'root', name: 'Mi unidad' }]);
   const [folders, setFolders] = useState<DriveFolder[]>([]), [updatedDays, setUpdatedDays] = useState(0);
   const scopeRef = useRef(scope); scopeRef.current = scope;
+  const previousScope = useRef(scope);
   const props = useRef({ user, ready, onSave }); props.current = { user, ready, onSave };
   const saved = useRef<DriveConnection | null>(null), auth = useRef<DriveAuthorization | null>(null);
   const locked = useRef(false), browsing = useRef(false), generation = useRef(0), mounted = useRef(true);
@@ -31,20 +32,29 @@ export function useDriveHealth({ scope, user, ready, onSave }: { scope: string; 
   };
   useEffect(() => {
     mounted.current = true;
+    if (previousScope.current !== scope) forgetDriveAuthorization(previousScope.current);
+    previousScope.current = scope;
     const account = scope, op = ++generation.current;
     controller.current?.abort(); auth.current = null; saved.current = null; locked.current = false; browsing.current = false; lastAttempt.current = 0;
     setConnection(null); setPhase('loading'); setError(''); setBusy(false); setPicker(false); setUpdatedDays(0);
-    void readSetting<DriveConnection>(key(account)).then(value => {
+    void readSetting<DriveConnection>(key(account)).then(async value => {
       if (!valid(account, op)) return;
       if (value?.origin === HONOR_HEALTH_PACKAGE && /^[A-Za-z0-9_-]{1,200}$/.test(value.folder?.id ?? '') && typeof value.folder.name === 'string' && typeof value.email === 'string') {
-        saved.current = value; setConnection(value); setPhase('authorization_required');
+        locked.current = true; saved.current = value; setConnection(value);
+        try {
+          const restored = await restoreDriveAuthorization(account, props.current.user?.email ?? value.email, begin().signal);
+          if (!valid(account, op)) return;
+          auth.current = restored;
+          setPhase(restored ? value.days ? 'current' : value.checkedAt ? 'empty_honor' : 'waiting' : 'authorization_required');
+        } finally { if (valid(account, op)) locked.current = false; }
+        if (valid(account, op) && auth.current && props.current.ready) void syncRef.current(true);
       } else setPhase('disconnected');
     }).catch(() => { if (valid(account, op)) { setPhase('error'); setError('No se pudo abrir la configuración de Drive guardada en este dispositivo.'); } });
     return () => { mounted.current = false; generation.current++; controller.current?.abort(); auth.current = null; };
   }, [scope]);
   const fail = (err: unknown) => {
     if ((err as Error).name === 'AbortError') return;
-    if (err instanceof DriveAccessExpired) { auth.current = null; setPhase('authorization_required'); setError(''); }
+    if (err instanceof DriveAccessExpired) { forgetDriveAuthorization(scopeRef.current); auth.current = null; setPhase('authorization_required'); setError(''); }
     else { setPhase('error'); setError(err instanceof Error ? err.message : 'No se pudo consultar Drive.'); }
   };
   const sync = async (force = false) => {
@@ -54,6 +64,11 @@ export function useDriveHealth({ scope, user, ready, onSave }: { scope: string; 
     locked.current = true; setBusy(true); setError(''); setPhase('checking'); lastAttempt.current = Date.now();
     const abort = begin();
     try {
+      if (!auth.current || auth.current.expiresAt <= Date.now()) {
+        const restored = await restoreDriveAuthorization(account, props.current.user?.email ?? before.email, abort.signal);
+        if (!valid(account, op)) return;
+        auth.current = restored;
+      }
       const access = authorization(), file = await latestHealthZip(before.folder.id, access.accessToken, abort.signal);
       if (!valid(account, op)) return;
       if (!file || Number(file.size) === 0) { setPhase('waiting'); return; }
@@ -96,9 +111,9 @@ export function useDriveHealth({ scope, user, ready, onSave }: { scope: string; 
     locked.current = true; setBusy(true); setError(''); setPhase('authorizing');
     let shouldSync = false;
     try {
-      const result = await authorizeDrive(props.current.user?.uid, props.current.user?.email ?? saved.current?.email);
+      const result = await authorizeDrive(props.current.user?.uid, props.current.user?.email ?? (changeFolder ? undefined : saved.current?.email));
       if (!valid(account, op)) return;
-      if (!changeFolder && saved.current && result.email !== saved.current.email) throw new Error('Elige la cuenta que contiene tu carpeta vinculada, o pulsa Cambiar carpeta.');
+      if (!changeFolder && saved.current && result.email.toLowerCase() !== saved.current.email.toLowerCase()) throw new Error('Elige la cuenta que contiene tu carpeta vinculada, o pulsa Cambiar carpeta.');
       auth.current = result;
       if (saved.current && !changeFolder) { shouldSync = true; }
       else {
@@ -136,6 +151,7 @@ export function useDriveHealth({ scope, user, ready, onSave }: { scope: string; 
   const closePicker = () => { browsing.current = false; setPicker(false); setPhase(saved.current ? auth.current ? saved.current.days ? 'current' : saved.current.checkedAt ? 'empty_honor' : 'waiting' : 'authorization_required' : 'disconnected'); };
   const disconnect = async () => {
     const account = scopeRef.current;
+    forgetDriveAuthorization(account);
     generation.current++; controller.current?.abort(); auth.current = null; saved.current = null; browsing.current = false; locked.current = false;
     setPicker(false); setConnection(null); setError(''); setPhase('disconnected'); setBusy(false); setUpdatedDays(0);
     await saveSetting(key(account), null);

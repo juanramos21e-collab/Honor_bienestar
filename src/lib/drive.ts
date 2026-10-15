@@ -13,6 +13,7 @@ async function request(path: string, token: string, signal?: AbortSignal): Promi
     const body = await response.json().catch(() => ({}));
     const reasons = (body.error?.errors ?? []).map((x: { reason?: string }) => x.reason);
     if (response.status === 403 && (reasons.includes('accessNotConfigured') || (body.error?.details ?? []).some((x: { reason?: string }) => x.reason === 'SERVICE_DISABLED'))) throw new Error('Falta habilitar Google Drive API en el proyecto honor-bienestar. Abre la guía de activación de Drive.');
+    if (response.status === 403 && (reasons.includes('insufficientPermissions') || (body.error?.details ?? []).some((x: { reason?: string }) => x.reason === 'ACCESS_TOKEN_SCOPE_INSUFFICIENT'))) throw new DriveAccessExpired();
     if (response.status === 403) throw new Error('Google no concedió lectura de esta carpeta. Revisa el permiso de Drive y vuelve a conectar.');
     if (response.status === 404) throw new Error('La carpeta o la copia ya no está disponible. Elige la carpeta de exportación de nuevo.');
     if (response.status === 429 || response.status >= 500) throw new Error('Drive está ocupado. Se volverá a comprobar en la próxima actualización.');

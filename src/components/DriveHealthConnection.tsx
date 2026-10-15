@@ -21,7 +21,6 @@ export default function DriveHealthConnection({ drive, onProgress }: { drive: Dr
   }[drive.phase];
   return <section className="settings-card health-connection drive-health">
     <div className="card-heading"><Activity className="mint" /><div><h2>Datos de salud</h2><p>Conecta la copia de HONOR Health y sigue tu progreso.</p></div></div>
-    <p>Solo se incorporan mediciones compartidas por <strong>HONOR Health</strong>. Los registros del teléfono y de otras aplicaciones quedan fuera. Tus respuestas y apuntes se conservan.</p>
     <details className="health-setup" open={!c}>
       <summary>Configurar HONOR Health, Health Connect y Drive</summary>
       <ol>
@@ -39,10 +38,10 @@ export default function DriveHealthConnection({ drive, onProgress }: { drive: Dr
     {c?.days !== undefined && c.days > 0 && <p className="settings-note">{c.days} días con mediciones de HONOR Health · {drive.updatedDays} días actualizados en esta consulta.</p>}
     {drive.error && <p className="error-text" role="alert">{drive.error}</p>}
     <div className="button-row">
-      {(!c || !drive.hasAccess || drive.phase === 'error') && <button className="primary-button" disabled={drive.busy || drive.phase === 'loading'} onClick={() => { void drive.connect(); }}><Folder size={17} />{c ? 'Renovar acceso de Google' : 'Conectar Drive'}</button>}
-      {c && <><button className="secondary-button" disabled={drive.busy} onClick={() => { void drive.sync(true); }}><RefreshCw size={16} />Actualizar datos de salud</button><button className="text-button" disabled={drive.busy} onClick={() => { void drive.connect(true); }}>Cambiar carpeta</button><button className="text-button" onClick={() => { void drive.disconnect(); }}><Unplug size={15} />Desvincular carpeta</button></>}
+      {!c && <button className="primary-button" disabled={drive.busy || drive.phase === 'loading'} onClick={() => { void drive.connect(); }}><Folder size={17} />Conectar Drive</button>}
+      {c && <><button className="primary-button" disabled={drive.busy || drive.phase === 'loading'} onClick={() => { void (drive.hasAccess ? drive.sync(true) : drive.connect()); }}><RefreshCw size={16} />Actualizar datos de salud</button><button className="text-button" disabled={drive.busy} onClick={() => { void drive.connect(true); }}>Cambiar carpeta</button><button className="text-button" onClick={() => { void drive.disconnect(); }}><Unplug size={15} />Desvincular carpeta</button></>}
     </div>
-    <p className="settings-note">Google solicita permiso para leer tus archivos de Drive; esta app consulta las copias de la carpeta que eliges. Se comprueban automáticamente al volver a la app y cada cinco minutos mientras esté visible y el acceso siga vigente. Al recargar o cerrar la web tendrás que renovar el acceso de Google; la carpeta queda guardada. La frecuencia de los datos depende de la exportación de Health Connect.</p>
+    <p className="settings-note">{c ? 'Se actualiza al volver a la app y cada cinco minutos mientras esté visible. Se reutiliza tu acceso de Google; si vence, pulsa Actualizar datos de salud.' : 'Google pide permiso de lectura de Drive. La app revisa las copias de la carpeta que elijas.'}</p>
     {c?.checkedAt && <p className="settings-note">Última comprobación: {stamp(c.checkedAt)}.{c.fileModifiedAt && <> Copia de Drive: {stamp(c.fileModifiedAt)}.</>}</p>}
     {c?.importedAt && <p className="settings-note">Última incorporación al historial: {stamp(c.importedAt)}.</p>}
     {c?.warnings?.map(message => <p className="settings-note" key={message}>{message}</p>)}

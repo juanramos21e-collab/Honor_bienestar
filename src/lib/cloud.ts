@@ -1,7 +1,9 @@
 import { normalizeEntry, type DayEntry } from './model';
 import type { User } from 'firebase/auth';
 import { healthBridge, isNativeAndroid } from './nativeHealth';
+import { clearGoogleAccess, googleAccessRevision, readGoogleAccess, saveGoogleAccess, type DriveAuthorization } from './googleAccess';
 export type { User };
+export type { DriveAuthorization };
 
 const config = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -25,8 +27,25 @@ function client() {
 export async function observeUser(callback: (user: User | null) => void) {
   const c = await client();
   // El resultado del retorno de Google se resuelve antes de leer la sesión.
-  if (!isNativeAndroid()) await c.authModule.getRedirectResult(c.auth);
-  return c.authModule.onAuthStateChanged(c.auth, callback);
+  if (!isNativeAndroid()) {
+    const result = await c.authModule.getRedirectResult(c.auth);
+    if (result) rememberGoogleLogin(c.authModule, result);
+  }
+  return c.authModule.onAuthStateChanged(c.auth, user => {
+    // Nunca restaurar un acceso de otra cuenta al cambiar de sesión.
+    if (user) {
+      const existing = readGoogleAccess('guest');
+      if (existing && existing.uid === user.uid) saveGoogleAccess({ ...existing, scope: 'user:' + user.uid });
+    }
+    callback(user);
+  });
+}
+function rememberGoogleLogin(authModule: typeof import('firebase/auth'), result: import('firebase/auth').UserCredential, revision = googleAccessRevision()) {
+  const scope = 'user:' + result.user.uid;
+  const current = readGoogleAccess(scope, result.user.email ?? undefined);
+  if (current?.driveGranted) return;
+  const accessToken = authModule.GoogleAuthProvider.credentialFromResult(result)?.accessToken;
+  if (accessToken) saveGoogleAccess({ accessToken, expiresAt: Date.now() + 55 * 60000, email: result.user.email ?? '', uid: result.user.uid, scope, driveGranted: false }, revision);
 }
 export async function login() {
   const c = await client();
@@ -40,8 +59,9 @@ export async function login() {
     return;
   }
   const provider = new c.authModule.GoogleAuthProvider();
-  provider.setCustomParameters({ prompt: 'select_account' });
-  try { await c.authModule.signInWithPopup(c.auth, provider); }
+  provider.setCustomParameters({ prompt: 'select_account', include_granted_scopes: 'true' });
+  const revision = googleAccessRevision();
+  try { rememberGoogleLogin(c.authModule, await c.authModule.signInWithPopup(c.auth, provider), revision); }
   catch (error) {
     const code = (error as { code?: string }).code;
     if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
@@ -49,7 +69,7 @@ export async function login() {
     } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') throw error;
   }
 }
-export async function logout() { const c = await client(); await c.authModule.signOut(c.auth); }
+export async function logout() { clearGoogleAccess(); const c = await client(); await c.authModule.signOut(c.auth); }
 let driveClientPromise: ReturnType<typeof createDriveClient> | undefined;
 async function createDriveClient() {
   if (!cloudConfigured) throw new Error('Configura Google en esta web para conectar Drive.');
@@ -60,20 +80,42 @@ async function createDriveClient() {
   await authModule.setPersistence(auth, authModule.inMemoryPersistence);
   return { auth, authModule };
 }
-export type DriveAuthorization = { accessToken: string; expiresAt: number; email: string };
+export { clearGoogleAccess as forgetDriveAuthorization };
+export async function restoreDriveAuthorization(scope: string, email?: string, signal?: AbortSignal): Promise<DriveAuthorization | null> {
+  const access = readGoogleAccess(scope, email);
+  if (!access) return null;
+  if (access.driveGranted) return access;
+  // La sesión de Firebase no concede Drive. Comprueba si el token devuelto
+  // por Google al iniciar sesión ya incluye un permiso anterior de esta web.
+  const revision = googleAccessRevision();
+  const response = await fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)', {
+    headers: { Authorization: 'Bearer ' + access.accessToken }, credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', signal,
+  });
+  if (response.status === 401 || response.status === 403) { if (revision === googleAccessRevision()) clearGoogleAccess(scope); return null; }
+  if (!response.ok) throw new Error('No se pudo comprobar el acceso de tu cuenta a Drive. Vuelve a intentarlo.');
+  const data = await response.json();
+  if (!data.user?.emailAddress || data.user.emailAddress.toLowerCase() !== access.email.toLowerCase()) { if (revision === googleAccessRevision()) clearGoogleAccess(scope); return null; }
+  const verified = { ...access, driveGranted: true };
+  return saveGoogleAccess(verified, revision) ? verified : null;
+}
 export async function authorizeDrive(expectedUid?: string, email?: string): Promise<DriveAuthorization> {
+  const scope = expectedUid ? 'user:' + expectedUid : 'guest';
+  const existing = await restoreDriveAuthorization(scope, email);
+  if (existing) return existing;
+  const revision = googleAccessRevision();
   const c = await (driveClientPromise ??= createDriveClient());
   const provider = new c.authModule.GoogleAuthProvider();
   provider.addScope('https://www.googleapis.com/auth/drive.readonly');
-  provider.setCustomParameters({ prompt: 'select_account', ...(email ? { login_hint: email } : {}) });
+  provider.setCustomParameters({ include_granted_scopes: 'true', ...(email ? { login_hint: email } : {}) });
   try {
     const result = await c.authModule.signInWithPopup(c.auth, provider);
     if (expectedUid && result.user.uid !== expectedUid) throw new Error('Elige la misma cuenta de Google que utilizas en este historial.');
+    if (email && result.user.email?.toLowerCase() !== email.toLowerCase()) throw new Error('Elige la cuenta de Google que contiene tu carpeta vinculada.');
     const accessToken = c.authModule.GoogleAuthProvider.credentialFromResult(result)?.accessToken;
     if (!accessToken) throw new Error('Google no concedió acceso de lectura a Drive.');
-    // Google entrega tokens temporales; no se guarda un token en IndexedDB,
-    // respaldos, Firestore ni archivos. La app pide renovar cuando es necesario.
-    return { accessToken, expiresAt: Date.now() + 55 * 60000, email: result.user.email ?? '' };
+    const access = { accessToken, expiresAt: Date.now() + 55 * 60000, email: result.user.email ?? '', uid: result.user.uid, scope, driveGranted: true };
+    if (!saveGoogleAccess(access, revision)) throw new Error('La sesión cambió. Vuelve a conectar Drive con tu cuenta actual.');
+    return access;
   } catch (error) {
     const code = (error as { code?: string }).code ?? '';
     if (code === 'auth/popup-blocked') throw new Error('Permite la ventana de Google y pulsa Conectar Drive de nuevo.');
