@@ -1,8 +1,8 @@
 # Descargar y actualizar Honor
 
-[Descargar Actualizar-Honor.cmd](https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Actualizar-Honor.cmd)
+[Descargar actualizador para Windows](https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Actualizar-Honor-Windows.zip)
 
-En Windows, abre este archivo para descargar el paquete, verificar su SHA-256 y publicar la versión correcta usando tu sesión de Firebase. Usa una carpeta nueva para evitar publicar por error una copia anterior. Después comprueba la versión que devuelve Firebase. No necesita instalar dependencias del proyecto ni Android Studio.
+En Windows, extrae el ZIP y abre `Actualizar-Honor.cmd` para descargar el paquete, verificar su SHA-256 y publicar la versión correcta usando tu sesión de Firebase. Usa una carpeta nueva para evitar publicar por error una copia anterior. Después comprueba la versión que devuelve Firebase. No necesita instalar dependencias del proyecto ni Android Studio.
 
 [Descargar el APK Android](https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Honor-salud-android.apk)
 
