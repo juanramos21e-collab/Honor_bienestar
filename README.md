@@ -1,5 +1,15 @@
 # Descargar y actualizar Honor
 
+[Descargar Actualizar-Honor.cmd](https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Actualizar-Honor.cmd)
+
+En Windows, abre este archivo para descargar el paquete, verificar su SHA-256 y publicar la versión correcta usando tu sesión de Firebase. Usa una carpeta nueva para evitar publicar por error una copia anterior. Después comprueba la versión que devuelve Firebase. No necesita instalar dependencias del proyecto ni Android Studio.
+
+[Descargar el APK Android](https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Honor-salud-android.apk)
+
+El micrófono está en **Registrar mi día → Comenzar por voz**. Los datos de salud están en **Cuenta y ajustes → Datos de salud**. La consulta de Health Connect requiere el APK Android y que la app del reloj comparta sus mediciones con ese servicio. La web permite registro manual y gráficas.
+
+## Actualización manual
+
 [Descargar el ZIP listo para publicar](https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Honor-Android-y-web-salud.zip)
 
 1. Extrae el ZIP y abre la carpeta `Honor_bienestar`.
