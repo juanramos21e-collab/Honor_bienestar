@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // cap sync puede haber copiado el APK de una publicación anterior. Son recursos generados.
 rmSync(join(root, 'android/app/src/main/assets/public/downloads'), { recursive: true, force: true });
+rmSync(join(root, 'dist/downloads'), { recursive: true, force: true });
 const env = { ...process.env };
 if (!env.JAVA_HOME && existsSync('/workspace/.honor-tools/jdk21')) env.JAVA_HOME = '/workspace/.honor-tools/jdk21/' + readdirSync('/workspace/.honor-tools/jdk21').find(name => existsSync(`/workspace/.honor-tools/jdk21/${name}/bin/javac`));
 if (!env.ANDROID_HOME && existsSync('/workspace/.honor-tools/android-sdk')) env.ANDROID_HOME = '/workspace/.honor-tools/android-sdk';
@@ -23,5 +24,5 @@ const apk = join(root, 'android/app/build/outputs/apk/debug/app-debug.apk');
 const certificate = execFileSync(keytool, ['-exportcert', '-rfc', '-keystore', join(root, 'android/.local/debug.keystore'), '-storepass', 'android', '-alias', 'androiddebugkey'], { env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
 const { X509Certificate } = await import('node:crypto'); const cert = new X509Certificate(certificate);
 writeFileSync(join(root, 'android/android-signing.json'), JSON.stringify({ packageName: 'app.honor.bienestar', sha1: cert.fingerprint.replaceAll(':', '').toLowerCase(), sha256: cert.fingerprint256.replaceAll(':', '').toLowerCase(), variant: 'debug' }, null, 2));
-mkdirSync(join(root, 'dist/downloads'), { recursive: true }); copyFileSync(apk, join(root, 'dist/downloads/Honor-salud-android.apk'));
-console.log('APK de prueba y web preparados en dist/. La clave de firma queda fuera de Git y de las entregas.');
+mkdirSync(join(root, 'android/releases'), { recursive: true }); copyFileSync(apk, join(root, 'android/releases/Honor-salud-android.apk'));
+console.log('Web preparada en dist/. APK de prueba en android/releases/, fuera de Firebase Hosting Spark. La clave de firma queda fuera de Git y de las entregas.');

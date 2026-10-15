@@ -57,13 +57,15 @@ npm ci
 npm run build:android
 ```
 
-Este comando compila la web, copia los recursos al proyecto Android, compila el APK, ejecuta las pruebas Kotlin y coloca el APK en `dist/downloads/Honor-salud-android.apk`. No ejecutes `cap sync` en paralelo con Gradle: vuelve a generar un módulo que Gradle necesita. El APK no se incluye dentro de sí mismo; se añade a Hosting después de copiar los recursos Android. No queda en el caché offline de la PWA.
+Este comando compila la web, copia los recursos al proyecto Android, compila el APK, ejecuta las pruebas Kotlin y coloca el APK en `android/releases/Honor-salud-android.apk`, fuera de `dist/`. No ejecutes `cap sync` en paralelo con Gradle: vuelve a generar un módulo que Gradle necesita. El APK no se incluye dentro de sí mismo ni en el caché offline de la PWA.
+
+Firebase Hosting en el plan Spark rechaza archivos APK. Por eso la web se publica desde `dist/` y el APK se distribuye desde la rama `descargas` del repositorio GitHub. El botón Android abre esa descarga externa. `firebase.json` excluye los APK aunque queden archivos antiguos en `dist/`, y redirige el enlace `/downloads/Honor-salud-android.apk` de entregas anteriores a GitHub. No se requiere cambiar al plan Blaze.
 
 En el entorno de Codex Linux puede prepararse el toolchain con `python3 scripts/setup-android-cloud.py`. Usa rutas en `/workspace/.honor-tools`, verifica checksums oficiales y conserva la verificación TLS con los certificados de confianza del entorno. No modifica `HOME`. El script se probó en la máquina actual; no establece por sí solo una comprobación en otra restauración.
 
 La firma de prueba se conserva en `android/.local/debug.keystore`, fuera de Git y del ZIP. No borres esa carpeta del entorno si necesitas producir actualizaciones con el mismo certificado. Al compilar en otro equipo se genera otra firma y habrá que registrar sus huellas; una APK con otra firma no actualiza la instalación anterior. Para publicar en Google Play hacen falta una firma de producción propia y las declaraciones/revisiones de datos de salud de Play. Este paquete está destinado a instalación de prueba personal.
 
-El ZIP de entrega ya contiene `dist` y el APK. Para actualizar Hosting y las reglas de métricas desde tu sesión Windows:
+El ZIP de entrega ya contiene `dist/` compilado y el APK separado en `android/releases/`. Para actualizar Hosting y las reglas de métricas desde tu sesión Windows, abre la carpeta `Honor_bienestar` del ZIP recién extraído:
 
 ```cmd
 npx --yes firebase-tools@15.33.0 deploy --only hosting,firestore:rules --project honor-bienestar

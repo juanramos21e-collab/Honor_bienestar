@@ -54,7 +54,7 @@ Las pruebas unitarias cubren la fórmula, los pesos, vacíos frente a ceros, per
 
 Google y Firestore deben verificarse con un proyecto real siguiendo [la guía de Google y publicación](docs/GOOGLE-Y-PUBLICACION.md). Las pruebas locales no establecen que la sincronización con una cuenta real haya sido validada.
 
-Para compilar también el APK, instala JDK 21 y Android SDK 36 y ejecuta `npm run build:android`. El resultado incluye la web y el APK descargable en `dist`; ejecuta este comando al publicar el paquete completo. `npm run build` prepara solo la web y elimina el APK anterior de `dist`. El registro Google del APK se completa con `npm run android:google` desde una sesión Firebase del propietario. La firma de prueba y los metadatos generados no se suben a Git. Véase la guía Android para migrar el historial local, permisos, firma y limitaciones.
+Para compilar también el APK, instala JDK 21 y Android SDK 36 y ejecuta `npm run build:android`. La web queda en `dist/` y el APK en `android/releases/Honor-salud-android.apk`. Firebase Spark no permite alojar APK: se distribuye desde GitHub y el botón de la web abre esa descarga. La configuración de Hosting excluye también los APK que puedan quedar de entregas anteriores. El registro Google del APK se completa con `npm run android:google` desde una sesión Firebase del propietario. La firma de prueba y los metadatos generados no se suben a Git. Véase la guía Android para migrar el historial local, permisos, firma y limitaciones.
 
 ## Compatibilidad con el Excel
 

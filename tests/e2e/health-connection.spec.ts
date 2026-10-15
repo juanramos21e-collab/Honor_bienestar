@@ -7,7 +7,7 @@ test('navegador: explica el acceso Android sin fingir detección de aplicaciones
   await start(page);
   await expect(card(page).getByRole('heading', { name: 'Datos de salud', exact: true })).toBeVisible();
   await expect(card(page)).toContainText('necesitas la versión Android');
-  await expect(card(page).getByRole('link', { name: 'Descargar versión Android' })).toHaveAttribute('href', '/downloads/Honor-salud-android.apk');
+  await expect(card(page).getByRole('link', { name: 'Descargar versión Android' })).toHaveAttribute('href', 'https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Honor-salud-android.apk');
   await expect(card(page).getByRole('button', { name: 'Actualizar datos', exact: true })).toHaveCount(0);
 });
 

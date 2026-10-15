@@ -1,13 +1,14 @@
 {
   "hosting": {
     "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "**/*.[aA][pP][kK]"],
+    "redirects": [{
+      "source": "/downloads/Honor-salud-android.apk",
+      "destination": "https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Honor-salud-android.apk",
+      "type": 302
+    }],
     "rewrites": [{ "source": "**", "destination": "/index.html" }],
     "headers": [
-      { "source": "/downloads/*.apk", "headers": [
-        { "key": "Content-Type", "value": "application/vnd.android.package-archive" },
-        { "key": "Cache-Control", "value": "no-cache" }
-      ] },
       { "source": "**", "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
