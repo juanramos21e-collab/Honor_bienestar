@@ -3,6 +3,7 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Line, LineChart, Referen
 import { ArrowUpRight, CalendarDays, ChartNoAxesCombined, Scale } from 'lucide-react';
 import { VARIABLES, aggregate, formatDate, localDate, moodScore, showPercent, type DayEntry, type Period } from '../lib/model';
 import DayComposition from './DayComposition';
+import HealthProgress from './HealthProgress';
 
 export default function Progress({ days, onEdit }: { days: DayEntry[]; onEdit: (date: string) => void }) {
   const [period, setPeriod] = useState<Period>('Día');
@@ -32,5 +33,6 @@ export default function Progress({ days, onEdit }: { days: DayEntry[]; onEdit: (
       <section className="chart-card variables-chart"><div className="chart-title"><h2>Lo que forma tu día</h2><span className="muted">Variables por {period.toLowerCase()}</span></div><ResponsiveContainer width="100%" height={270}><BarChart data={data} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}><CartesianGrid stroke="#23383a" vertical={false} /><XAxis dataKey="date" tick={axisStyle} tickFormatter={d => formatDate(d)} minTickGap={35} axisLine={false} tickLine={false} /><YAxis tick={axisStyle} tickFormatter={v => `${Math.round(v * 100)}%`} width={48} axisLine={false} tickLine={false} /><Tooltip contentStyle={tooltipStyle} labelFormatter={v => formatDate(String(v), true)} formatter={(v, name) => [showPercent(Number(v)), String(name)]} />{VARIABLES.map(v => <Bar key={v.id} dataKey={v.id} name={v.label} stackId="variables" fill={v.color} isAnimationActive={false} maxBarSize={36} />)}</BarChart></ResponsiveContainer><div className="variable-legend">{VARIABLES.map(v => <span key={v.id}><i style={{ background: v.color }} />{v.label}</span>)}</div><p className="chart-note">Estado y peso muestran el promedio de cada período. Las barras suman los valores registrados; las respuestas pendientes se omiten.</p></section>
       <section className="detail-card"><div className="chart-title"><h2>Un día en detalle</h2><select aria-label="Día del detalle" value={detail?.date ?? ''} onChange={e => setSelected(e.target.value)}>{[...filtered].reverse().map(e => <option key={e.date} value={e.date}>{formatDate(e.date, true)}</option>)}</select></div>{detail && <><DayComposition entry={detail} />{detail.notes && <p className="day-notes">{detail.notes}</p>}<button className="text-button" onClick={() => onEdit(detail.date)}>Revisar y editar este registro <ArrowUpRight size={16} /></button></>}</section>
     </>}
+    <HealthProgress days={filtered} period={period} />
   </div>;
 }

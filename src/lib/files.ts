@@ -1,5 +1,6 @@
 import { ACTIVITIES, VARIABLES, answersFor, emptyEntry, hasContent, localDate, moodScore, normalizeEntry, validDate, type DayEntry } from './model';
 import type { Cell, CellValue, Row } from 'exceljs';
+import { HEALTH_METRICS } from './health';
 
 const clean = (s: unknown) => String(s ?? '').trim().replace(/\s+/g, ' ');
 function readCell(cell: Cell): unknown {
@@ -75,6 +76,8 @@ export async function importExcel(buffer: ArrayBuffer): Promise<DayEntry[]> {
     entry.productivityMode = 'manual';
     for (const v of VARIABLES) entry.answers[v.id] = numeric(read(row, v.excel));
     entry.weight = numeric(read(row, 'Peso'));
+    const health = Object.fromEntries(HEALTH_METRICS.filter(m => columns.has(`Salud: ${m.label} (${m.unit})`)).map(m => [m.id, numeric(read(row, `Salud: ${m.label} (${m.unit})`))]));
+    if (Object.values(health).some(v => v !== null)) entry.health = health as DayEntry['health'];
     if (columns.has('Notas')) entry.notes = clean(read(row, 'Notas')).slice(0, 2000);
     // Los enlaces de productividad devuelven 0 en las filas futuras vacías.
     const realState = VARIABLES.some(v => v.id !== 'productivity' && entry.answers[v.id] !== null) || (entry.answers.productivity !== null && entry.answers.productivity !== 0);
@@ -117,10 +120,10 @@ export async function exportExcel(entries: DayEntry[]) {
   const { Workbook } = await import('exceljs');
   const book = new Workbook();
   const sheet = book.addWorksheet('Estado_Animo');
-  sheet.addRow(['N', 'Fecha', ...VARIABLES.map(v => v.excel), 'EStado de animo', 'Porcentaje de estado', 'Peso', 'Notas']);
+  sheet.addRow(['N', 'Fecha', ...VARIABLES.map(v => v.excel), 'EStado de animo', 'Porcentaje de estado', 'Peso', 'Notas', ...HEALTH_METRICS.map(m => `Salud: ${m.label} (${m.unit})`)]);
   entries.forEach((entry, index) => {
     const answers = answersFor(entry); const score = moodScore(entry);
-    sheet.addRow([index + 1, entry.date, ...VARIABLES.map(v => answers[v.id]), score === null ? null : score * 3, score, entry.weight, entry.notes]);
+    sheet.addRow([index + 1, entry.date, ...VARIABLES.map(v => answers[v.id]), score === null ? null : score * 3, score, entry.weight, entry.notes, ...HEALTH_METRICS.map(m => entry.health?.[m.id] ?? null)]);
   });
   sheet.columns.forEach(c => { c.width = 22; }); sheet.getRow(1).font = { bold: true };
   const activities = book.addWorksheet('Productividad');

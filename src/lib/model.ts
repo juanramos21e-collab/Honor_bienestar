@@ -1,3 +1,5 @@
+import { normalizeHealth, type HealthMetrics } from './health';
+
 export const ACTIVITIES = [
   { id: 'meditate', excel: 'Meditar', label: 'Meditar u orar', weight: .05, hint: 'Un momento para detenerte y conectar contigo.' },
   { id: 'read', excel: 'Leer', label: 'Leer', weight: .08, hint: 'Una lectura para crecer personal o profesionalmente.' },
@@ -28,6 +30,7 @@ export type DayEntry = {
   activities: Record<ActivityId, number | null>;
   productivityMode: 'activities' | 'manual';
   weight: number | null;
+  health?: HealthMetrics;
   notes: string;
   updatedAt: string;
 };
@@ -66,7 +69,7 @@ export function moodScore(entry: DayEntry): number | null {
   return VARIABLES.reduce((sum, v) => sum + (answers[v.id] ?? 0) * (v.negative ? -1 : 1), 0) / 3;
 }
 export function hasContent(entry: DayEntry): boolean {
-  return moodScore(entry) !== null || entry.weight !== null || !!entry.notes.trim();
+  return moodScore(entry) !== null || entry.weight !== null || !!entry.notes.trim() || Object.keys(entry.health ?? {}).length > 0;
 }
 export function sameEntry(a: DayEntry, b: DayEntry): boolean {
   return JSON.stringify({ ...normalizeEntry(a), updatedAt: '' }) === JSON.stringify({ ...normalizeEntry(b), updatedAt: '' });
@@ -91,6 +94,8 @@ export function normalizeEntry(input: unknown): DayEntry {
   entry.productivityMode = value.productivityMode === 'activities' ? 'activities' : 'manual';
   entry.weight = readNumber(value.weight, 500);
   if (entry.weight === 0) throw new Error('El peso debe ser mayor que cero.');
+  const health = normalizeHealth(value.health);
+  if (health) entry.health = health;
   entry.notes = typeof value.notes === 'string' ? value.notes.slice(0, 2000) : '';
   if (typeof value.updatedAt === 'string' && !isNaN(Date.parse(value.updatedAt))) entry.updatedAt = value.updatedAt;
   return entry;

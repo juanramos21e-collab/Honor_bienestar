@@ -10,6 +10,8 @@ Web instalable en Android (PWA), con la misma información y fórmula de la apli
 
 - Menú principal: «¿Qué hiciste hoy?» y «Ver mi progreso».
 - Nueve actividades con los pesos de productividad del Excel; seis preguntas de estado, peso opcional y notas.
+- Doce métricas opcionales de Salud de HONOR con entrada manual, gráficas de evolución y comparación con el estado diario. Se conservan en borradores, respaldos, Excel y sincronización; no cambian la fórmula de estado.
+- Cuestionario por voz con lectura completa o anuncio breve, escala de cuatro o cinco opciones, señal antes de abrir el micrófono, dictado de apuntes y confirmación antes de guardar. Consulta [Salud y voz](docs/SALUD-Y-VOZ.md).
 - Un registro por fecha. Las respuestas guardadas reaparecen al editar; los cambios actualizan ese día. El borrador también se guarda mientras respondes.
 - Gráficas de estado, peso y variables con agrupación por día, semana, mes y año, filtros y detalle diario con gráfica de torta. Estado y peso usan una escala de fechas y unen las mediciones disponibles sin convertir los días vacíos en ceros.
 - Guardado local en IndexedDB, apertura sin conexión tras la primera carga e instalación en Android.
@@ -45,9 +47,9 @@ Para el sandbox de Codex, añade `npm_config_cache=/tmp/honor-npm` antes del com
 npm test
 ```
 
-Sin configuración Firebase, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e` (cinco pruebas). Si Firebase ya está configurado, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e -- --grep-invert 'Google pendiente'` (cuatro pruebas). La prueba «Google pendiente» corresponde exclusivamente a una compilación sin configuración Firebase.
+Sin configuración Firebase, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e` (nueve pruebas). Si Firebase ya está configurado, ejecuta `CHROMIUM_PATH=/usr/bin/chromium npm run test:e2e -- --grep-invert 'Google pendiente'` (ocho pruebas). La prueba «Google pendiente» corresponde exclusivamente a una compilación sin configuración Firebase.
 
-Las pruebas unitarias cubren la fórmula, los pesos, vacíos frente a ceros, períodos, validación de datos, conflictos e importación del formato original. Las pruebas en Chromium con tamaño de pantalla Android cubren registro, edición sin duplicados, recuperación del borrador, recarga sin conexión, importación, respaldo y las dos imágenes. Si Chromium no está instalado, usa la instalación estándar de Playwright (`npx playwright install chromium`) y omite `CHROMIUM_PATH`.
+Las pruebas unitarias cubren la fórmula, los pesos, vacíos frente a ceros, períodos, validación de salud, conflictos, importación original y números hablados en español. Chromium cubre registro, edición, borradores, recarga sin conexión, importación, respaldo, Excel con salud y las imágenes. Las pruebas de voz usan APIs simuladas para controlar el orden de lectura, señal y escucha, los permisos, la pausa y los dos recorridos completos; falta comprobar audio y micrófono reales en el dispositivo. Si Chromium no está instalado, usa `npx playwright install chromium` y omite `CHROMIUM_PATH`.
 
 Google y Firestore deben verificarse con un proyecto real siguiendo [la guía de Google y publicación](docs/GOOGLE-Y-PUBLICACION.md). Las pruebas locales no establecen que la sincronización con una cuenta real haya sido validada.
 
@@ -77,7 +79,7 @@ Desde la carpeta que contiene `firebase.json`, publica los cambios con:
 
 ```sh
 npm run build
-npx --yes firebase-tools@15.33.0 deploy --only hosting --project honor-bienestar
+npx --yes firebase-tools@15.33.0 deploy --only hosting,firestore:rules --project honor-bienestar
 ```
 
 Consulta [GOOGLE-Y-PUBLICACION.md](docs/GOOGLE-Y-PUBLICACION.md) para crear el proyecto desde Android, habilitar Google, publicar las reglas de acceso y alojar la web con HTTPS. El alojamiento externo no se realiza al publicar un entorno de Codex.

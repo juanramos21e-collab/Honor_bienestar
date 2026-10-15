@@ -17,11 +17,26 @@ service cloud.firestore {
         && score(data.university) && score(data.personal) && score(data.learn)
         && score(data.help) && score(data.schedule) && score(data.gym);
     }
+    function metric(data, key, minimum, maximum) {
+      return !(key in data) || (data[key] is number && data[key] >= minimum && data[key] <= maximum);
+    }
+    function validHealth(data) {
+      let stages = data.get('deepSleepHours', 0) + data.get('lightSleepHours', 0) + data.get('remSleepHours', 0);
+      return data.keys().hasOnly(['steps', 'distanceKm', 'activeCalories', 'exerciseMinutes', 'heartRate', 'restingHeartRate', 'spo2', 'sleepHours', 'deepSleepHours', 'lightSleepHours', 'remSleepHours', 'stress'])
+        && metric(data, 'steps', 0, 100000) && (!('steps' in data) || data.steps is int)
+        && metric(data, 'distanceKm', 0, 1000) && metric(data, 'activeCalories', 0, 20000)
+        && metric(data, 'exerciseMinutes', 0, 1440)
+        && metric(data, 'heartRate', 1, 300) && metric(data, 'restingHeartRate', 1, 300)
+        && metric(data, 'spo2', 1, 100) && metric(data, 'stress', 0, 100)
+        && metric(data, 'sleepHours', 0, 24) && metric(data, 'deepSleepHours', 0, 24)
+        && metric(data, 'lightSleepHours', 0, 24) && metric(data, 'remSleepHours', 0, 24)
+        && stages <= 24 && stages <= data.get('sleepHours', 24) + 0.05;
+    }
     match /users/{uid}/days/{day} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.auth.uid == uid
         && day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
-        && request.resource.data.keys().hasOnly(['date', 'answers', 'activities', 'productivityMode', 'weight', 'notes', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['date', 'answers', 'activities', 'productivityMode', 'weight', 'health', 'notes', 'updatedAt'])
         && request.resource.data.date == day
         && request.resource.data.answers is map
         && answers(request.resource.data.answers)
@@ -29,6 +44,7 @@ service cloud.firestore {
         && activities(request.resource.data.activities)
         && request.resource.data.productivityMode in ['activities', 'manual']
         && (request.resource.data.weight == null || (request.resource.data.weight is number && request.resource.data.weight > 0 && request.resource.data.weight <= 500))
+        && (!('health' in request.resource.data) || (request.resource.data.health is map && validHealth(request.resource.data.health)))
         && request.resource.data.notes is string && request.resource.data.notes.size() <= 2000
         && request.resource.data.updatedAt is string;
       allow delete: if request.auth != null && request.auth.uid == uid;
