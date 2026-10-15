@@ -1,6 +1,6 @@
-# Honor: voz por secciones y HONOR Health oficial
+# Honor: carpeta de Drive y datos exclusivos de HONOR Health
 
-[Descargar el paquete web actualizado](https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Honor-web-voz-y-PlayStore.zip)
+[Descargar la actualización web compilada](https://github.com/juanramos21e-collab/Honor_bienestar/raw/refs/heads/descargas/Honor-web-Drive-HONOR.zip)
 
 1. Extrae el ZIP en una carpeta nueva y abre **Honor_bienestar**.
 2. Escribe **cmd** en la barra de direcciones del Explorador y pulsa Enter.
@@ -10,18 +10,16 @@
 npx --yes firebase-tools@15.33.0 deploy --only hosting,firestore:rules --project honor-bienestar
 ```
 
-Cuando aparezca **Deploy complete!**, abre https://honor-bienestar.web.app y pulsa Ctrl+F5. Si Honor avisa de una nueva versión, guarda tu registro y pulsa Actualizar.
+Cuando aparezca **Deploy complete!**, abre https://honor-bienestar.web.app y pulsa Ctrl+F5. Si aparece el aviso de nueva versión, guarda tu registro y pulsa Actualizar.
 
-La web ya está compilada. Este ZIP no contiene APK ni necesita instalarlo para usar la voz en Chrome.
+En **Cuenta y ajustes → Datos de salud** encontrarás la guía de cinco pasos y **Conectar Drive**. Vincula la carpeta configurada para la copia programada de Health Connect. Se incorpora únicamente el escritor oficial HONOR Health; se excluyen los registros del teléfono y de otras apps sin borrar el historial, las respuestas ni los apuntes.
 
-- Actividades: **sí o no**.
-- Cómo me siento: **nada, poco, medio, bastante o mucho**.
-- Peso: **kilogramos**, con decimales.
+Se comprueba la copia más reciente al volver al frente y cada cinco minutos con la web visible y el acceso temporal de Google vigente. **Al recargar o cerrar la web hay que renovar el acceso de Google; la carpeta se recuerda.** No se descargan ni importan archivos manualmente. No se ofrece sincronización con la web cerrada.
 
-El asistente anuncia las instrucciones de cada sección también en el modo breve. Las preguntas del reloj son opcionales. Al final puedes dictar tus apuntes y decir guardar o revisar.
+El propietario debe tener habilitada [Google Drive API](https://console.cloud.google.com/apis/library/drive.googleapis.com?project=honor-bienestar) y configurar el consentimiento OAuth de lectura de Drive. Google puede requerir usuarios de prueba o verificación según el estado de publicación. La autorización con una cuenta real debe comprobarse después de desplegar. El paquete incluye **LEEME-PRIMERO.txt** y la [guía completa](https://github.com/juanramos21e-collab/Honor_bienestar/blob/main/docs/DRIVE-SALUD.md).
 
-**Cuenta y ajustes → Datos de salud** ahora abre [HONOR Health oficial en Google Play](https://play.google.com/store/apps/details?id=com.hihonor.health). Instalar la app oficial no autoriza a nuestra web a leer sus mediciones privadas: se mantiene el registro manual y las gráficas. La integración Android/Health Connect del proyecto sigue siendo distinta y depende de los permisos y datos compartidos por la app de origen.
+La web ya está compilada. El ZIP no contiene APK ni los datos personales aportados, y conserva la voz por secciones, las gráficas y los GIF. Se verificaron 43 pruebas unitarias y 16 de navegador; Google se simula en las pruebas de conexión, mientras el ZIP y el worker se procesan realmente.
 
-Código: [main](https://github.com/juanramos21e-collab/Honor_bienestar/tree/main). Versión: `1ca78680f3407c98870583813cd6a417ae63e0d3`.
+Código: [main](https://github.com/juanramos21e-collab/Honor_bienestar/tree/main). Versión: b4c79c0bdaae5e12fe14e043e5f98a74bf42b496.
 
-SHA-256 del ZIP: `8af1522a101b3f3fea814cc3f078de9b24bd95c32a43695580d0b9a46f2ae3a0`.
+SHA-256 del ZIP: 0937e396da577c3af843a358f238f930111b303de176451835a9d6ac8e9e6958.
