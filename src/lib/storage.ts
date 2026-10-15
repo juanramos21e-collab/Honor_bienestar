@@ -1,5 +1,6 @@
 import { openDB } from 'idb';
 import { defaultProfile, normalizeEntry, type DayEntry, type Profile } from './model';
+import { mergeHonorReadings, preserveUneditedHealth, type HonorArchive } from './honorHealth';
 
 const dbPromise = openDB('honor-bienestar-v1', 1, {
   upgrade(db) { db.createObjectStore('days'); db.createObjectStore('settings'); db.createObjectStore('drafts'); },
@@ -24,8 +25,12 @@ export async function patchProfile(scope: string, patch: Partial<Profile>): Prom
   const updated = { ...defaultProfile, ...await tx.store.get(`profile|${scope}`), ...patch };
   await tx.store.put(updated, `profile|${scope}`); await tx.done; return updated;
 }
-export async function saveLocalDays(scope: string, entries: DayEntry[], sync: boolean) {
+export async function saveLocalDays(scope: string, entries: DayEntry[], sync: boolean, baseline?: DayEntry) {
   const db = await dbPromise; const tx = db.transaction(['days', 'settings'], 'readwrite');
+  if (baseline && entries.length === 1) {
+    const current: DayEntry | undefined = await tx.objectStore('days').get(scope + '|' + entries[0].date);
+    if (current) entries = [preserveUneditedHealth(current, entries[0], baseline)];
+  }
   if (sync) {
     const previous: DayEntry[] = await tx.objectStore('settings').get(`pending|${scope}`) ?? [];
     const merged = new Map(previous.map(e => [e.date, e]));
@@ -34,6 +39,28 @@ export async function saveLocalDays(scope: string, entries: DayEntry[], sync: bo
   }
   for (const e of entries) await tx.objectStore('days').put(normalizeEntry(e), `${scope}|${e.date}`);
   await tx.done;
+}
+// Leer y combinar dentro de la misma transacción conserva una edición concurrente.
+export async function saveHonorArchive(scope: string, archive: HonorArchive, sync: boolean): Promise<number> {
+  const db = await dbPromise;
+  const tx = db.transaction(['days', 'settings'], 'readwrite');
+  try {
+    const current = await Promise.all(archive.entries.map(entry => tx.objectStore('days').get(scope + '|' + entry.date)));
+    const changes = mergeHonorReadings(current.filter((entry): entry is DayEntry => !!entry), archive);
+    if (sync && changes.length) {
+      const pending: DayEntry[] = await tx.objectStore('settings').get('pending|' + scope) ?? [];
+      const merged = new Map(pending.map(entry => [entry.date, entry]));
+      for (const entry of changes) merged.set(entry.date, entry);
+      await tx.objectStore('settings').put([...merged.values()], 'pending|' + scope);
+    }
+    for (const entry of changes) await tx.objectStore('days').put(entry, scope + '|' + entry.date);
+    await tx.done;
+    return changes.length;
+  } catch (error) {
+    try { tx.abort(); } catch { /* La transacción puede haberse abortado ya. */ }
+    await tx.done.catch(() => {});
+    throw error;
+  }
 }
 export async function applyCloudSnapshot(scope: string, remote: DayEntry[]) {
   const db = await dbPromise; const tx = db.transaction(['days', 'settings'], 'readwrite');

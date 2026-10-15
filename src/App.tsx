@@ -10,6 +10,7 @@ import DayForm from './components/DayForm';
 import Settings from './components/Settings';
 import MergeDialog from './components/MergeDialog';
 import { isNativeAndroid } from './lib/nativeHealth';
+import { useDriveHealth } from './lib/useDriveHealth';
 const Progress = lazy(() => import('./components/Progress'));
 
 type Page = 'inicio' | 'progreso' | 'ajustes' | 'registro';
@@ -23,6 +24,7 @@ export default function App() {
   const notify = useCallback((message: string) => { setToast(message); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(''), 7000); }, []);
   const data = useWellbeing(notify);
   const [started, setStarted] = useState<boolean | null>(null); const [page, setPage] = useState<Page>(hashPage);
+  const drive = useDriveHealth({ scope: data.scope, user: data.user, ready: !data.loading && !data.storageError && !!started && page !== 'registro' && !data.syncConflicts.length && !isNativeAndroid(), onSave: data.saveHealth });
   const [menu, setMenu] = useState(false); const [date, setDate] = useState(hashDate); const [today, setToday] = useState(localDate());
   const [merge, setMerge] = useState<Merge | null>(null); const [googleBusy, setGoogleBusy] = useState(false);
   const [installEvent, setInstallEvent] = useState<InstallEvent | null>(null);
@@ -83,9 +85,9 @@ export default function App() {
         <div className="inspiration-grid"><section className="inspiration-card"><span className="card-eyebrow"><Sparkles size={15} />ORIENTACIÓN DEL DÍA</span><span className="advice-badge">{inspiration.advice.label}</span><p>{inspiration.advice.text}</p></section><section className="inspiration-card quote-card"><span className="card-eyebrow">UNA PAUSA PARA INSPIRARTE<button className="icon-button" aria-label="Cambiar frase" onClick={() => { void inspiration.rotate().catch(() => notify('No se pudo guardar la frase.')); }}><RefreshCw size={15} /></button></span><p>{inspiration.phrase}</p></section></div>
         {!data.days.length && <div className="import-hint"><span>¿Ya tienes registros guardados? Puedes incorporarlos a tu historial.</span><button className="text-button" onClick={() => navigate('ajustes')}>Importar mis registros<ArrowRight size={16} /></button></div>}
       </div>}
-      {page === 'registro' && <DayForm key={`${data.scope}|${date}`} scope={data.scope} initial={data.days.find(e => e.date === date)} date={date} notify={notify} onBack={() => navigate('inicio')} onSave={async entry => { await data.saveEntries([entry]); }} />}
+      {page === 'registro' && <DayForm key={`${data.scope}|${date}`} scope={data.scope} initial={data.days.find(e => e.date === date)} date={date} notify={notify} onBack={() => navigate('inicio')} onSave={async (entry, baseline) => { await data.saveEntries([entry], baseline); }} />}
       {page === 'progreso' && <Suspense fallback={<p className="loading">Preparando tus gráficas…</p>}><Progress days={data.days} onEdit={edit} /></Suspense>}
-      {page === 'ajustes' && <Settings key={data.scope} scope={data.scope} onHealthSave={data.saveEntries} onProgress={() => navigate('progreso')} profile={data.profile} days={data.days} user={data.user} status={data.status} onProfile={data.saveProfile} onImport={prepareImport} onGoogle={() => { void google(); }} onLogout={() => { void logout().then(() => { navigate('inicio'); notify('Sesión cerrada. Volviste al historial sin cuenta de este dispositivo.'); }).catch(error => notify(cloudError(error))); }} onSync={() => { void data.sync(); }} onGuestImport={() => { void importGuest(); }} onInstall={() => { void install(); }} notify={notify} />}
+      {page === 'ajustes' && <Settings key={data.scope} scope={data.scope} drive={drive} onHealthSave={data.saveEntries} onProgress={() => navigate('progreso')} profile={data.profile} days={data.days} user={data.user} status={data.status} onProfile={data.saveProfile} onImport={prepareImport} onGoogle={() => { void google(); }} onLogout={() => { void logout().then(() => { navigate('inicio'); notify('Sesión cerrada. Volviste al historial sin cuenta de este dispositivo.'); }).catch(error => notify(cloudError(error))); }} onSync={() => { void data.sync(); }} onGuestImport={() => { void importGuest(); }} onInstall={() => { void install(); }} notify={notify} />}
       <footer className="app-footer"><Leaf size={13} /><span>Hecho para acompañarte, un día a la vez.</span></footer>
     </main>
     <nav className="bottom-nav" aria-label="Navegación móvil">{([{ id: 'inicio', label: 'Inicio', icon: Home }, { id: 'progreso', label: 'Progreso', icon: ChartNoAxesCombined }, { id: 'ajustes', label: 'Ajustes', icon: Settings2 }] as const).map(item => <button key={item.id} className={page === item.id ? 'active' : ''} onClick={() => navigate(item.id)}><item.icon size={20} />{item.label}</button>)}</nav>

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cloudConfigured, cloudError, fetchCloudDays, observeUser, uploadDay, type User } from './cloud';
 import { defaultProfile, type Conflict, type DayEntry, type Profile } from './model';
-import { acknowledgeSync, applyCloudSnapshot, getDays, getPending, getProfile, putDays, patchProfile, queueSync, readSetting, saveLocalDays, saveSetting } from './storage';
+import type { HonorArchive } from './honorHealth';
+import { acknowledgeSync, applyCloudSnapshot, getDays, getPending, getProfile, putDays, patchProfile, queueSync, readSetting, saveLocalDays, saveHonorArchive, saveSetting } from './storage';
 
 export function useWellbeing(notify: (message: string) => void) {
   const [user, setUser] = useState<User | null>(null);
@@ -61,13 +62,20 @@ export function useWellbeing(notify: (message: string) => void) {
     const timer = window.setInterval(onFocus, 60000);
     return () => { window.removeEventListener('online', onFocus); window.removeEventListener('focus', onFocus); clearInterval(timer); };
   }, [sync, loading, user]);
-  const saveEntries = async (entries: DayEntry[]) => {
+  const saveEntries = async (entries: DayEntry[], baseline?: DayEntry) => {
     const account = scope;
-    await saveLocalDays(account, entries, !!user); // Datos y cola de sincronización en una transacción local.
+    await saveLocalDays(account, entries, !!user, baseline); // Datos y cola de sincronización en una transacción local.
     if (scopeRef.current === account) setDays(await getDays(account));
     if (user) { setStatus('Guardado aquí · sincronizando'); void sync(); }
   };
   const saveProfile = async (value: Partial<Profile>) => { const updated = await patchProfile(scope, value); if (scopeRef.current === scope) setProfile(updated); };
+  const saveHealth = async (archive: HonorArchive) => {
+    const account = scope;
+    const count = await saveHonorArchive(account, archive, !!user);
+    if (scopeRef.current === account && count) setDays(await getDays(account));
+    if (user && count) { setStatus('Guardado aquí · sincronizando'); void sync(); }
+    return count;
+  };
   const resolveSync = async (choices: Record<string, 'local' | 'incoming'>) => {
     if (!user) return;
     const versions = await readSetting<Record<string, string>>(`bases|${scope}`) ?? {};
@@ -80,5 +88,5 @@ export function useWellbeing(notify: (message: string) => void) {
     await acknowledgeSync(scope, accepted); await queueSync(scope, uploads); await putDays(scope, picked); await saveSetting(`bases|${scope}`, versions);
     setDays(await getDays(scope)); conflictRef.current = []; setSyncConflicts([]); void sync();
   };
-  return { user, days, profile, scope, loading, status, storageError, saveEntries, saveProfile, sync, syncConflicts, resolveSync };
+  return { user, days, profile, scope, loading, status, storageError, saveEntries, saveHealth, saveProfile, sync, syncConflicts, resolveSync };
 }

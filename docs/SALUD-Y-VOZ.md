@@ -2,7 +2,7 @@
 
 En el registro del día, abre **Peso y cierre → Datos de mi reloj** para introducirlos manualmente. La versión Android también añade **Ajustes → Datos de salud** para consultar Health Connect con autorización. Consulta [Android y datos de salud](ANDROID-SALUD.md) para instalar, conectar y comprobar si tu aplicación de origen comparte mediciones. No hay una conexión directa a la nube de HONOR.
 
-La pantalla web enlaza a [HONOR Health oficial en Google Play](https://play.google.com/store/apps/details?id=com.hihonor.health), sin ofrecer la instalación de un APK externo como paso del registro. Instalar la app oficial no da a la web acceso a sus mediciones privadas: el acceso automático sigue necesitando una integración autorizada. El navegador conserva el registro manual y las gráficas. La versión Android de este proyecto y HONOR Health son aplicaciones distintas.
+La pantalla web enlaza a [HONOR Health oficial en Google Play](https://play.google.com/store/apps/details?id=com.hihonor.health), sin ofrecer la instalación de un APK externo como paso del registro. Instalar la app oficial no da a la web acceso a sus mediciones privadas: el acceso automático sigue necesitando una integración autorizada. La web también permite vincular la carpeta de Drive de la copia programada de Health Connect, con lectura exclusiva del escritor HONOR Health y autorización temporal de Google. Consulta [Drive y salud](DRIVE-SALUD.md). El registro manual y las gráficas siguen disponibles. La versión Android de este proyecto y HONOR Health son aplicaciones distintas.
 
 | Dato | Unidad |
 | --- | --- |

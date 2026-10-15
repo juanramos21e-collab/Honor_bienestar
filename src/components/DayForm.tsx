@@ -17,9 +17,10 @@ const questions: Record<string, { question: string; hint: string }> = {
   pain: { question: '¿Cuánto dolor o malestar sientes?', hint: 'Incluye dolor físico y emocional. Más intensidad resta al estado.' },
 };
 export default function DayForm({ scope, initial, date, onBack, onSave, notify }: {
-  scope: string; initial?: DayEntry; date: string; onBack: () => void; onSave: (entry: DayEntry) => Promise<void>; notify: (m: string) => void;
+  scope: string; initial?: DayEntry; date: string; onBack: () => void; onSave: (entry: DayEntry, baseline: DayEntry) => Promise<void>; notify: (m: string) => void;
 }) {
   const [entry, setEntry] = useState(initial ?? emptyEntry(date));
+  const baseline = useRef(initial ?? emptyEntry(date));
   const [step, setStep] = useState(0); const [ready, setReady] = useState(false); const [saving, setSaving] = useState(false);
   const [savedDraft, setSavedDraft] = useState<DayEntry | null>(null);
   const [failedDraft, setFailedDraft] = useState<DayEntry | null>(null);
@@ -68,7 +69,7 @@ export default function DayForm({ scope, initial, date, onBack, onSave, notify }
     try {
       await lastWrite.current;
       const complete = { ...entry, answers: { ...entry.answers, productivity: productivity(entry) }, updatedAt: new Date().toISOString() };
-      await onSave(complete);
+      await onSave(complete, baseline.current);
       finished.current = true; await removeDraft(scope, date); onBack(); notify('Tu día está guardado. Puedes volver y editar tus respuestas.');
     } catch { notify('No se pudo guardar el registro. Tu borrador se conserva para reintentarlo.'); }
     finally { setSaving(false); }

@@ -21,10 +21,12 @@
     "exceljs": "4.4.0",
     "firebase": "13.0.0",
     "idb": "8.0.4",
+    "jszip": "3.10.2",
     "lucide-react": "1.55.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "recharts": "3.10.1"
+    "recharts": "3.10.1",
+    "sql.js": "1.15.0"
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.3",
@@ -32,6 +34,7 @@
     "@types/node": "26.6.5",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@types/sql.js": "1.4.10",
     "@vitejs/plugin-react": "6.1.2",
     "typescript": "7.0.2",
     "vite": "8.3.4",

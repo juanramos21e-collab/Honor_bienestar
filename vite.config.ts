@@ -19,7 +19,7 @@ export default defineConfig({
     workbox: {
       maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       navigateFallbackDenylist: [/^\/__/, /^\/downloads\//],
-      globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+      globPatterns: ['**/*.{js,css,html,svg,png,woff2,wasm}'],
       cleanupOutdatedCaches: true,
     },
   })],

@@ -50,6 +50,38 @@ export async function login() {
   }
 }
 export async function logout() { const c = await client(); await c.authModule.signOut(c.auth); }
+let driveClientPromise: ReturnType<typeof createDriveClient> | undefined;
+async function createDriveClient() {
+  if (!cloudConfigured) throw new Error('Configura Google en esta web para conectar Drive.');
+  const [appModule, authModule] = await Promise.all([import('firebase/app'), import('firebase/auth')]);
+  const app = appModule.getApps().find(app => app.name === 'honor-drive') ?? appModule.initializeApp(config, 'honor-drive');
+  const auth = authModule.getAuth(app);
+  // La autorización de Drive no cambia la cuenta ni el historial abierto en Honor.
+  await authModule.setPersistence(auth, authModule.inMemoryPersistence);
+  return { auth, authModule };
+}
+export type DriveAuthorization = { accessToken: string; expiresAt: number; email: string };
+export async function authorizeDrive(expectedUid?: string, email?: string): Promise<DriveAuthorization> {
+  const c = await (driveClientPromise ??= createDriveClient());
+  const provider = new c.authModule.GoogleAuthProvider();
+  provider.addScope('https://www.googleapis.com/auth/drive.readonly');
+  provider.setCustomParameters({ prompt: 'select_account', ...(email ? { login_hint: email } : {}) });
+  try {
+    const result = await c.authModule.signInWithPopup(c.auth, provider);
+    if (expectedUid && result.user.uid !== expectedUid) throw new Error('Elige la misma cuenta de Google que utilizas en este historial.');
+    const accessToken = c.authModule.GoogleAuthProvider.credentialFromResult(result)?.accessToken;
+    if (!accessToken) throw new Error('Google no concedió acceso de lectura a Drive.');
+    // Google entrega tokens temporales; no se guarda un token en IndexedDB,
+    // respaldos, Firestore ni archivos. La app pide renovar cuando es necesario.
+    return { accessToken, expiresAt: Date.now() + 55 * 60000, email: result.user.email ?? '' };
+  } catch (error) {
+    const code = (error as { code?: string }).code ?? '';
+    if (code === 'auth/popup-blocked') throw new Error('Permite la ventana de Google y pulsa Conectar Drive de nuevo.');
+    if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') throw new Error('La conexión con Drive se canceló. Tu historial se conserva.');
+    if (code.startsWith('auth/')) throw new Error('Google no completó la autorización de Drive. Revisa la configuración OAuth de esta web y vuelve a intentarlo.');
+    throw error;
+  } finally { await c.authModule.signOut(c.auth).catch(() => {}); }
+}
 export async function fetchCloudDays(uid: string): Promise<DayEntry[]> {
   const c = await client();
   const snapshot = await c.firestore.getDocsFromServer(c.firestore.collection(c.db, 'users', uid, 'days'));
